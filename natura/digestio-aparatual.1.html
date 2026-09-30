@@ -1,1 +1,128 @@
+<!DOCTYPE html>
+<html lang="eu"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Digestio aparatua: jokoa</title>
+<style>
+:root{--bg:#fff4e0;--card:#fff;--ink:#2b2350;--pri:#ff6b4a;--ok:#1f9d63;--bad:#d6334f;--sec:#5b4bdb;--line:#e8d9bd;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1838;--card:#2a2350;--ink:#fff3de;--line:#443b75}}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;font-size:17px;line-height:1.4}
+main{max-width:560px;margin:0 auto;padding:16px}
+h1{font-size:26px;margin:8px 0 4px}
+p{margin:6px 0}
+.card{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:16px;margin:12px 0}
+button{font:inherit;font-weight:700;color:inherit;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px 14px;width:100%;text-align:left;margin:6px 0;cursor:pointer}
+button:focus-visible{outline:3px solid var(--sec)}
+button.big{background:var(--pri);color:#fff;border-color:var(--pri);text-align:center;font-size:19px}
+button.alt{background:var(--sec);color:#fff;border-color:var(--sec);text-align:center}
+button.ok{background:var(--ok);color:#fff;border-color:var(--ok)}
+button.bad{background:var(--bad);color:#fff;border-color:var(--bad)}
+.top{display:flex;justify-content:space-between;font-weight:700}
+.bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:var(--pri);width:0;transition:width .3s}
+.q{font-size:20px;font-weight:700}
+.fb{min-height:48px;font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{width:auto;text-align:center}
+.slot{border:2px dashed var(--line);border-radius:12px;padding:8px 12px;margin:5px 0;min-height:42px}
+.big-n{font-size:48px;font-weight:800;text-align:center}
+.hide{display:none}
+</style></head><body><main>
+<div id="app"></div>
+</main>
+<script>
+const O=[
+{n:"Ahoa",f:"Digestio hodirako sarrera da. Barruan hortzak, mihia eta listu guruinak daude."},
+{n:"Faringea",f:"Elikagaiak hestegorrira bideratzen ditu."},
+{n:"Hestegorria",f:"Faringea eta urdaila lotzen ditu."},
+{n:"Urdaila",f:"Digestio hodian zabalgunea da. Bi balbula ditu: kardia eta piloroa."},
+{n:"Gibela",f:"Guruin handi bat da eta behazuna sortzen du."},
+{n:"Pankrea",f:"Guruin bat da eta pankreako guruina sortzen du."},
+{n:"Heste mehea",f:"Hodi luze bat da. Haren hormek tolesdurak eta biloak dituzte."},
+{n:"Heste lodia",f:"Hiru atal ditu: itsua, kolona eta ondestea."},
+{n:"Uzkia",f:"Azken zatia da. Hortik hondakinak kanporatzen dira."}];
+const PATH=["Ahoa","Faringea","Hestegorria","Urdaila","Heste mehea","Heste lodia","Uzkia"];
+const $=id=>document.getElementById(id), app=$("app");
+const sh=a=>a.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+let score=0,i=0,qs=[],lock=false,best=0;
+try{best=+localStorage.getItem("best")||0}catch(e){}
 
+function home(){
+ app.innerHTML=`<h1>Digestio aparatua 🍎</h1><p>Ikasi fitxa jolas eginez!</p>
+ <div class="card"><button class="big" onclick="startQuiz()">1. Zein organoa da?</button>
+ <button class="big" onclick="startPath()">2. Janariaren bidaia</button>
+ <button class="big" onclick="startTF()">3. Egia ala gezurra?</button>
+ <p>Errekorra: ${best} puntu</p></div>`;
+}
+function head(t){return `<div class="top"><span>${t}</span><span>⭐ ${score}</span></div><div class="bar"><i id="pb" style="width:${i/qs.length*100}%"></i></div>`}
+function end(){
+ if(score>best){best=score;try{localStorage.setItem("best",best)}catch(e){}}
+ const m=score>=qs.length*8?"Bikain! Maisua zara! 🏆":score>=qs.length*5?"Oso ondo! Errepasatu pixka bat 👍":"Saiatu berriro, lortuko duzu! 💪";
+ app.innerHTML=`<div class="card"><div class="big-n">${score}</div><p style="text-align:center" class="q">${m}</p>
+ <button class="big" onclick="home()">Hasierara</button></div>`;
+}
+/* 1. Organ quiz */
+function startQuiz(){score=0;i=0;qs=sh(O);quiz()}
+function quiz(){
+ if(i>=qs.length)return end();
+ lock=false;const o=qs[i];
+ const opts=sh([o,...sh(O.filter(x=>x!==o)).slice(0,3)]);
+ app.innerHTML=head(`${i+1}/${qs.length}`)+`<div class="card"><p class="q">${o.f}</p><p>Zein organo da?</p>
+ ${opts.map(x=>`<button data-n="${x.n}">${x.n}</button>`).join("")}<p class="fb" id="fb"></p></div>`;
+ app.querySelectorAll("button[data-n]").forEach(b=>b.onclick=()=>{
+  if(lock)return;lock=true;
+  const right=b.dataset.n===o.n;
+  if(right){score+=10;b.classList.add("ok");$("fb").textContent="Zuzena! +10 🎉"}
+  else{b.classList.add("bad");app.querySelectorAll("button[data-n]").forEach(c=>{if(c.dataset.n===o.n)c.classList.add("ok")});$("fb").textContent="Ez da zuzena. Zuzena: "+o.n}
+  setTimeout(()=>{i++;quiz()},1400)});
+}
+/* 2. Food path */
+function startPath(){score=0;i=0;qs=[1,2,3];pathRound()}
+let next=0;
+function pathRound(){
+ if(i>=qs.length)return end();
+ next=0;
+ app.innerHTML=head(`${i+1}/${qs.length}`)+`<div class="card"><p class="q">Sartu janaria ahotik. Ukitu organoak ordenan!</p>
+ <div id="slots">${PATH.map((_,k)=>`<div class="slot" id="s${k}"></div>`).join("")}</div>
+ <div class="chips" id="chips">${sh(PATH).map(p=>`<button data-p="${p}">${p}</button>`).join("")}</div>
+ <p class="fb" id="fb"></p></div>`;
+ app.querySelectorAll("button[data-p]").forEach(b=>b.onclick=()=>{
+  if(b.dataset.p===PATH[next]){
+   $("s"+next).textContent=(next+1)+". "+b.dataset.p;b.remove();next++;$("fb").textContent="Ondo! 👍";score+=5;
+   if(next===PATH.length){$("fb").textContent="Bidaia osatu duzu! 🎉";setTimeout(()=>{i++;pathRound()},1400)}
+  }else{$("fb").textContent="Hori ez da hurrengoa. Saiatu berriro!";score=Math.max(0,score-2)}
+ });
+}
+/* 3. True/false */
+const T=[
+["Ahoan hortzak, mihia eta listu guruinak daude.",1],
+["Faringeak elikagaiak hestegorrira bideratzen ditu.",1],
+["Hestegorriak faringea eta urdaila lotzen ditu.",1],
+["Urdailaren bi balbulak kardia eta piloroa dira.",1],
+["Kardia urdailaren irteeran dago.",0],
+["Piloroa urdailaren irteeran dago.",1],
+["Gibelak pankreako guruina sortzen du.",0],
+["Gibelak behazuna sortzen du.",1],
+["Pankreak behazuna sortzen du.",0],
+["Heste mehearen hormek biloak dituzte.",1],
+["Heste lodiak bi atal ditu.",0],
+["Heste lodiaren atalak itsua, kolona eta ondestea dira.",1],
+["Uzkitik hondakinak kanporatzen dira.",1],
+["Digestio guruinak listu guruinak, pankrea eta gibela dira.",1],
+["Digestio hodia muskulu konduktu bat da.",1]];
+function startTF(){score=0;i=0;qs=sh(T).slice(0,10);tf()}
+function tf(){
+ if(i>=qs.length)return end();
+ lock=false;const q=qs[i];
+ app.innerHTML=head(`${i+1}/${qs.length}`)+`<div class="card"><p class="q">${q[0]}</p>
+ <button data-v="1">✅ Egia</button><button data-v="0">❌ Gezurra</button><p class="fb" id="fb"></p></div>`;
+ app.querySelectorAll("button[data-v]").forEach(b=>b.onclick=()=>{
+  if(lock)return;lock=true;
+  const r=(+b.dataset.v)===q[1];
+  if(r){score+=10;b.classList.add("ok");$("fb").textContent="Zuzena! +10 🎉"}
+  else{b.classList.add("bad");$("fb").textContent="Ez. Erantzuna: "+(q[1]?"egia":"gezurra")}
+  setTimeout(()=>{i++;tf()},1300)});
+}
+home();
+</script></body></html>
