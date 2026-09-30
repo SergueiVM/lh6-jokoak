@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="eu"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Digestioaren prozesua: jokoa</title>
+<style>
+:root{--bg:#fff4e0;--card:#fff;--ink:#2b2350;--pri:#ff6b4a;--ok:#1f9d63;--bad:#d6334f;--sec:#5b4bdb;--line:#e8d9bd;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1838;--card:#2a2350;--ink:#fff3de;--line:#443b75}}
+:root[data-theme="dark"]{--bg:#1d1838;--card:#2a2350;--ink:#fff3de;--line:#443b75}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;font-size:17px;line-height:1.4}
+main{max-width:560px;margin:0 auto;padding:16px}
+h1{font-size:26px;margin:8px 0 4px}
+p{margin:6px 0}
+.card{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:16px;margin:12px 0}
+button{font:inherit;font-weight:700;color:inherit;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px 14px;width:100%;text-align:left;margin:6px 0;cursor:pointer}
+button:focus-visible{outline:3px solid var(--sec)}
+button.big{background:var(--pri);color:#fff;border-color:var(--pri);text-align:center;font-size:19px}
+button.ok{background:var(--ok);color:#fff;border-color:var(--ok)}
+button.bad{background:var(--bad);color:#fff;border-color:var(--bad)}
+.top{display:flex;justify-content:space-between;font-weight:700}
+.bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:var(--pri);transition:width .3s}
+.q{font-size:20px;font-weight:700}
+.fb{min-height:48px;font-weight:700}
+.slot{border:2px dashed var(--line);border-radius:12px;padding:8px 12px;margin:5px 0;min-height:42px}
+.big-n{font-size:48px;font-weight:800;text-align:center}
+.back{background:none;border:none;width:auto;padding:4px 0;color:var(--sec)}
+</style></head><body><main><div id="app"></div></main>
+<script>
+const STEPS=[
+"Ahoan hortzek elikagaiak birrindu egiten dituzte eta listuarekin nahasten dira: elikadura boloa sortzen da.",
+"Elikadura boloa urdailera igarotzen da, faringea eta hestegorria zeharkatuz.",
+"Urdailean boloa urin gastrikoekin nahasten da eta kimo bihurtzen da.",
+"Kimoa heste mehera igarotzen da eta urinekin nahasten da: kiloa sortzen da.",
+"Heste mehean xurgatze prozesua gertatzen da: biloek mantenugaiak odolera pasatzen dituzte.",
+"Heste lodiak ura xurgatzen du eta gorotza sortzen da. Hondakinak uzkitik kanporatzen dira."];
+const BLANKS=[
+["Ahoan hortzek elikagaiak ___ egiten dituzte.","birrindu",["xurgatu","nahastu","kanporatu"]],
+["Elikadura boloa masa ___ da.","oretsua",["likidoa","gogorra","lehorra"]],
+["Elikadura boloa faringea eta ___ zeharkatuz doa urdailera.","hestegorria",["heste mehea","gibela","uzkia"]],
+["Urdailean boloa ___ bihurtzen da.","kimo",["kilo","gorotz","listu"]],
+["Kiloa ___ dituen likidoa da.","mantenugaiak",["hondakinak","hortzak","balbulak"]],
+["Heste mehean ___ mantenugaiak odolera pasatzen dituzte.","biloek",["hortzek","balbulek","guruinek"]],
+["Heste lodiak ___ xurgatzen du.","ura",["kiloa","kimoa","odola"]]];
+const WHAT=["Elikadura boloa","Kimoa","Kiloa","Gorotza"];
+const PLACES=[["Ahoan","Elikadura boloa"],["Urdailean","Kimoa"],["Heste mehean","Kiloa"],["Heste lodian","Gorotza"]];
+const $=id=>document.getElementById(id),app=$("app");
+const sh=a=>a.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+let score=0,i=0,qs=[],lock=false,best=0,mode="";
+try{best=+localStorage.getItem("best2")||0}catch(e){}
+function home(){
+ app.innerHTML=`<h1>Digestioaren prozesua 🍽️</h1><p>Ikasi janaria nola bihurtzen den energia!</p>
+ <div class="card"><button class="big" onclick="startOrder()">1. Jarri urratsak ordenan</button>
+ <button class="big" onclick="startBlank()">2. Bete hutsuneak</button>
+ <button class="big" onclick="startWhat()">3. Zer sortzen da?</button>
+ <p>Errekorra: ${best} puntu</p></div>`;
+}
+function head(){return `<div class="top"><button class="back" onclick="home()">← Atzera</button><span>⭐ ${score}</span></div><div class="bar"><i style="width:${i/qs.length*100}%"></i></div>`}
+function end(){
+ if(score>best){best=score;try{localStorage.setItem("best2",best)}catch(e){}}
+ const m=score>=qs.length*8?"Bikain! Maisua zara! 🏆":score>=qs.length*5?"Oso ondo! Errepasatu pixka bat 👍":"Saiatu berriro, lortuko duzu! 💪";
+ app.innerHTML=`<div class="card"><div class="big-n">${score}</div><p style="text-align:center" class="q">${m}</p><button class="big" onclick="home()">Hasierara</button></div>`;
+}
+/* generic multiple-choice */
+function choice(text,sub,right,wrong,done){
+ lock=false;
+ const opts=sh([right,...wrong]);
+ app.innerHTML=head()+`<div class="card"><p class="q">${text}</p><p>${sub}</p>${opts.map(x=>`<button data-n="${x}">${x}</button>`).join("")}<p class="fb" id="fb"></p></div>`;
+ app.querySelectorAll("button[data-n]").forEach(b=>b.onclick=()=>{
+  if(lock)return;lock=true;
+  if(b.dataset.n===right){score+=10;b.classList.add("ok");$("fb").textContent="Zuzena! +10 🎉"}
+  else{b.classList.add("bad");app.querySelectorAll("button[data-n]").forEach(c=>{if(c.dataset.n===right)c.classList.add("ok")});$("fb").textContent="Ez da zuzena. Zuzena: "+right}
+  setTimeout(()=>{i++;done()},1400)});
+}
+/* 1. Order */
+function startOrder(){score=0;i=0;qs=[1,2,3];orderRound()}
+let next=0;
+function orderRound(){
+ if(i>=qs.length)return end();
+ next=0;
+ app.innerHTML=head()+`<div class="card"><p class="q">Ukitu urratsak ordenan, lehenengotik azkenera!</p>
+ <div>${STEPS.map((_,k)=>`<div class="slot" id="s${k}"></div>`).join("")}</div>
+ <div id="chips">${sh(STEPS.map((s,k)=>k)).map(k=>`<button data-k="${k}">${STEPS[k]}</button>`).join("")}</div><p class="fb" id="fb"></p></div>`;
+ app.querySelectorAll("button[data-k]").forEach(b=>b.onclick=()=>{
+  if(+b.dataset.k===next){
+   $("s"+next).textContent=(next+1)+". "+STEPS[next];b.remove();next++;$("fb").textContent="Ondo! 👍";score+=5;
+   if(next===STEPS.length){$("fb").textContent="Prozesua osatu duzu! 🎉";setTimeout(()=>{i++;orderRound()},1500)}
+  }else{$("fb").textContent="Hori ez da hurrengo urratsa. Saiatu berriro!";score=Math.max(0,score-2)}
+ });
+}
+/* 2. Blanks */
+function startBlank(){score=0;i=0;qs=sh(BLANKS);blank()}
+function blank(){
+ if(i>=qs.length)return end();
+ const q=qs[i];choice(q[0].replace("___","_____"),"Aukeratu hitz zuzena.",q[1],q[2],blank);
+}
+/* 3. What is produced */
+function startWhat(){score=0;i=0;qs=sh(PLACES);what()}
+function what(){
+ if(i>=qs.length)return end();
+ const q=qs[i];choice(q[0]+" zer sortzen da?","Aukeratu erantzun zuzena.",q[1],WHAT.filter(x=>x!==q[1]),what);
+}
+home();
+</script></body></html>
