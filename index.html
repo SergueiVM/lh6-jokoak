@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="eu"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ikasteko jokoak</title>
+<style>
+:root{--bg:#fff4e0;--card:#fff;--ink:#2b2350;--pri:#ff6b4a;--sec:#5b4bdb;--line:#e8d9bd;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1838;--card:#2a2350;--ink:#fff3de;--line:#443b75}}
+:root[data-theme="dark"]{--bg:#1d1838;--card:#2a2350;--ink:#fff3de;--line:#443b75}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;font-size:17px;line-height:1.4}
+main{max-width:560px;margin:0 auto;padding:16px}
+h1{font-size:28px;margin:8px 0 4px}
+p{margin:6px 0}
+a.game{display:flex;gap:14px;align-items:center;background:var(--card);border:2px solid var(--line);border-radius:18px;padding:14px 16px;margin:12px 0;color:inherit;text-decoration:none}
+a.game:hover{border-color:var(--pri)}
+a.game:focus-visible{outline:3px solid var(--sec)}
+.ico{font-size:38px;flex:none}
+.t{font-weight:800;font-size:19px}
+.d{opacity:.8;font-size:15px}
+.tag{display:inline-block;background:var(--pri);color:#fff;border-radius:10px;padding:1px 9px;font-size:13px;font-weight:700;margin-top:4px}
+</style></head><body><main>
+<h1>Ikasteko jokoak 🎒</h1>
+<p>Aukeratu joko bat eta ikasi jolasean!</p>
+<div id="list"></div>
+<script>
+/* ===== JOKO BERRIA GEHITZEKO: kopiatu lerro bat eta aldatu datuak ===== */
+const GAMES = [
+  { icon: "🍎", title: "Digestio aparatua", desc: "Organoak, funtzioak eta janariaren bidaia", subject: "Natura", url: "./natura/digestio-aparatual.1.html" },
+  // { icon: "🌍", title: "Izenburua", desc: "Azalpen laburra", subject: "Gaia", url: "https://..." },
+];
+/* ====================================================================== */
+const list = document.getElementById("list");
+GAMES.forEach(g => {
+  const a = document.createElement("a");
+  a.className = "game"; a.href = g.url; a.target = "_blank"; a.rel = "noopener";
+  const ico = document.createElement("span"); ico.className = "ico"; ico.textContent = g.icon;
+  const box = document.createElement("span");
+  const t = document.createElement("div"); t.className = "t"; t.textContent = g.title;
+  const d = document.createElement("div"); d.className = "d"; d.textContent = g.desc;
+  box.append(t, d);
+  if (g.subject) { const s = document.createElement("span"); s.className = "tag"; s.textContent = g.subject; box.append(s); }
+  a.append(ico, box); list.append(a);
+});
+</script>
+</main></body></html>
