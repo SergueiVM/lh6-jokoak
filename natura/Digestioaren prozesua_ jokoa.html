@@ -35,16 +35,9 @@ const STEPS=[
 "Kimoa heste mehera igarotzen da eta urinekin nahasten da: kiloa sortzen da.",
 "Heste mehean xurgatze prozesua gertatzen da: biloek mantenugaiak odolera pasatzen dituzte.",
 "Heste lodiak ura xurgatzen du eta gorotza sortzen da. Hondakinak uzkitik kanporatzen dira."];
-const BLANKS=[
-["Ahoan hortzek elikagaiak ___ egiten dituzte.","birrindu",["xurgatu","nahastu","kanporatu"]],
-["Elikadura boloa masa ___ da.","oretsua",["likidoa","gogorra","lehorra"]],
-["Elikadura boloa faringea eta ___ zeharkatuz doa urdailera.","hestegorria",["heste mehea","gibela","uzkia"]],
-["Urdailean boloa ___ bihurtzen da.","kimo",["kilo","gorotz","listu"]],
-["Kiloa ___ dituen likidoa da.","mantenugaiak",["hondakinak","hortzak","balbulak"]],
-["Heste mehean ___ mantenugaiak odolera pasatzen dituzte.","biloek",["hortzek","balbulek","guruinek"]],
-["Heste lodiak ___ xurgatzen du.","ura",["kiloa","kimoa","odola"]]];
-const WHAT=["Elikadura boloa","Kimoa","Kiloa","Gorotza"];
-const PLACES=[["Ahoan","Elikadura boloa"],["Urdailean","Kimoa"],["Heste mehean","Kiloa"],["Heste lodian","Gorotza"]];
+const BLANKS=[["Ahoan hortzek elikagaiak ___ egiten dituzte.", "birrindu", ["xurgatu", "kanporatu", "nahastu"]], ["Mihiari esker, birrindutakoa ___ nahasten da.", "listuarekin", ["kimoarekin", "behazunarekin", "urin gastrikoekin"]], ["Birrindutakoa listuarekin nahasten da eta ___ boloa sortzen da.", "elikadura", ["kimo", "kilo", "gorotz"]], ["Elikadura boloa masa ___ da.", "oretsua", ["likidoa", "gogorra", "lehorra"]], ["Elikadura boloa ___ igarotzen da.", "urdailera", ["ahora", "uzkira", "gibelera"]], ["Elikadura boloa urdailera igarotzen da, faringea eta ___ zeharkatuz.", "hestegorria", ["heste mehea", "gibela", "uzkia"]], ["Urdailaren hormen ___ esker boloa urin gastrikoekin nahasten da.", "mugimenduei", ["biloei", "hortzei", "balbulei"]], ["Urdailean boloa ___ nahasten da.", "urin gastrikoekin", ["listuarekin", "odolarekin", "gorotzarekin"]], ["Urdailean boloa ___ izeneko substantzia bihurtzen da.", "kimo", ["kilo", "gorotz", "listu"]], ["Kimoa ___ igarotzen da.", "heste mehera", ["ahora", "heste lodira", "hestegorrira"]], ["Heste mehean kimoa pankreako urinekin, ___ eta hesteetako urinekin nahasten da.", "behazunarekin", ["listuarekin", "odolarekin", "kiloarekin"]], ["Kimoa heste mehean nahastean ___ sortzen da.", "kiloa", ["listua", "gorotza", "behazuna"]], ["Kiloa mantenugaiak dituen ___ da.", "likidoa", ["gasa", "hezurra", "hortza"]], ["Heste mehean ___ prozesua gertatzen da.", "xurgatze", ["birrintze", "kanporatze", "nahaste"]], ["___ mantenugaiak odolera pasatzen dituzte.", "Biloek", ["Hortzek", "Balbulek", "Guruinek"]], ["Biloek mantenugaiak ___ pasatzen dituzte.", "odolera", ["urdailera", "uzkira", "ahora"]], ["Heste lodiak ___ xurgatzen du.", "ura", ["kiloa", "kimoa", "odola"]], ["Heste lodiak aprobetxatzen ez diren substantziak ___ bihurtzen ditu.", "gorotz", ["kimo", "kilo", "listu"]], ["Hondakinak ___ kanporatzen dira.", "uzkitik", ["ahotik", "hestegorritik", "urdailetik"]], ["Digestioaren lehen urratsa ___ gertatzen da.", "ahoan", ["urdailean", "heste lodian", "uzkian"]]];
+const WQ=[["Ahoan zer sortzen da?", "Elikadura boloa", ["Kimoa", "Kiloa", "Gorotza"]], ["Urdailean zer sortzen da?", "Kimoa", ["Elikadura boloa", "Kiloa", "Gorotza"]], ["Heste mehean zer sortzen da?", "Kiloa", ["Elikadura boloa", "Kimoa", "Gorotza"]], ["Heste lodian zer sortzen da?", "Gorotza", ["Elikadura boloa", "Kimoa", "Kiloa"]], ["Non sortzen da elikadura boloa?", "Ahoan", ["Urdailean", "Heste mehean", "Heste lodian"]], ["Non sortzen da kimoa?", "Urdailean", ["Ahoan", "Heste mehean", "Heste lodian"]], ["Non sortzen da kiloa?", "Heste mehean", ["Ahoan", "Urdailean", "Heste lodian"]], ["Non sortzen da gorotza?", "Heste lodian", ["Ahoan", "Urdailean", "Heste mehean"]], ["Non gertatzen da xurgatze prozesua?", "Heste mehean", ["Ahoan", "Urdailean", "Heste lodian"]], ["Non xurgatzen da ura?", "Heste lodian", ["Ahoan", "Urdailean", "Heste mehean"]], ["Zer bihurtzen da elikadura boloa urdailean?", "Kimo", ["Kilo", "Gorotz", "Listu"]], ["Zer bihurtzen da kimoa heste mehean?", "Kilo", ["Gorotz", "Elikadura bolo", "Listu"]], ["Zerekin nahasten da birrindutakoa ahoan?", "Listuarekin", ["Urin gastrikoekin", "Behazunarekin", "Kimoarekin"]], ["Zerekin nahasten da boloa urdailean?", "Urin gastrikoekin", ["Listuarekin", "Biloekin", "Gorotzarekin"]], ["Zerk pasatzen ditu mantenugaiak odolera?", "Biloek", ["Hortzek", "Balbulek", "Mihiak"]], ["Zer da kiloa?", "Mantenugaiak dituen likidoa", ["Masa oretsua", "Gorotza", "Behazuna"]], ["Zer da elikadura boloa?", "Masa oretsua", ["Mantenugaiak dituen likidoa", "Gorotza", "Urin gastrikoa"]], ["Zer egiten dute hortzek?", "Elikagaiak birrindu", ["Mantenugaiak xurgatu", "Ura xurgatu", "Kimoa sortu"]], ["Zer egiten du heste lodiak?", "Ura xurgatu eta gorotza sortu", ["Elikagaiak birrindu", "Kiloa sortu", "Behazuna sortu"]], ["Zer gertatzen da heste mehean?", "Xurgatze prozesua", ["Elikagaiak birrintzea", "Gorotza kanporatzea", "Boloa sortzea"]]];
+const TT=[["Ahoan elikadura boloa sortzen da.", 1], ["Elikadura boloa masa oretsua da.", 1], ["Elikadura boloak faringea eta hestegorria zeharkatzen ditu.", 1], ["Urdailean boloa kimo bihurtzen da.", 1], ["Urdailaren hormen mugimenduek boloa urin gastrikoekin nahasten dute.", 1], ["Kimoa heste mehera igarotzen da.", 1], ["Heste mehean kimoa behazunarekin nahasten da.", 1], ["Kiloa mantenugaiak dituen likidoa da.", 1], ["Heste mehean xurgatze prozesua gertatzen da.", 1], ["Biloek mantenugaiak odolera pasatzen dituzte.", 1], ["Heste lodiak ura xurgatzen du.", 1], ["Heste lodiak gorotza sortzen du.", 1], ["Hondakinak uzkitik kanporatzen dira.", 1], ["Mihiari esker, listua eta elikagaiak nahasten dira.", 1], ["Elikadura boloa heste lodian sortzen da.", 0], ["Elikadura boloa likido garbi bat da.", 0], ["Kimoa ahoan sortzen da.", 0], ["Kiloa urdailean sortzen da.", 0], ["Kimoa heste lodian sortzen da.", 0], ["Mantenugaiak heste lodian pasatzen dira odolera.", 0], ["Hondakinak ahotik kanporatzen dira.", 0], ["Gorotza heste mehean sortzen da.", 0], ["Xurgatze prozesua urdailean gertatzen da.", 0], ["Kiloa gorotz bihurtzen da urdailean.", 0], ["Hortzek ura xurgatzen dute.", 0]];
 const $=id=>document.getElementById(id),app=$("app");
 const sh=a=>a.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
 let score=0,i=0,qs=[],lock=false,best=0,mode="";
@@ -53,7 +46,8 @@ function home(){
  app.innerHTML=`<h1>Digestioaren prozesua 🍽️</h1><p>Ikasi janaria nola bihurtzen den energia!</p>
  <div class="card"><button class="big" onclick="startOrder()">1. Jarri urratsak ordenan</button>
  <button class="big" onclick="startBlank()">2. Bete hutsuneak</button>
- <button class="big" onclick="startWhat()">3. Zer sortzen da?</button>
+ <button class="big" onclick="startWhat()">3. Zer eta non?</button>
+ <button class="big" onclick="startTF()">4. Egia ala gezurra?</button>
  <p>Errekorra: ${best} puntu</p></div>`;
 }
 function head(){return `<div class="top"><button class="back" onclick="home()">← Atzera</button><span>⭐ ${score}</span></div><div class="bar"><i style="width:${i/qs.length*100}%"></i></div>`}
@@ -75,31 +69,43 @@ function choice(text,sub,right,wrong,done){
 }
 /* 1. Order */
 function startOrder(){score=0;i=0;qs=[1,2,3];orderRound()}
-let next=0;
+let next=0,S=STEPS;
 function orderRound(){
  if(i>=qs.length)return end();
- next=0;
+ next=0;{const L=4+Math.floor(Math.random()*3),st=Math.floor(Math.random()*(STEPS.length-L+1));S=STEPS.slice(st,st+L)}
  app.innerHTML=head()+`<div class="card"><p class="q">Ukitu urratsak ordenan, lehenengotik azkenera!</p>
- <div>${STEPS.map((_,k)=>`<div class="slot" id="s${k}"></div>`).join("")}</div>
- <div id="chips">${sh(STEPS.map((s,k)=>k)).map(k=>`<button data-k="${k}">${STEPS[k]}</button>`).join("")}</div><p class="fb" id="fb"></p></div>`;
+ <div>${S.map((_,k)=>`<div class="slot" id="s${k}"></div>`).join("")}</div>
+ <div id="chips">${sh(S.map((s,k)=>k)).map(k=>`<button data-k="${k}">${S[k]}</button>`).join("")}</div><p class="fb" id="fb"></p></div>`;
  app.querySelectorAll("button[data-k]").forEach(b=>b.onclick=()=>{
   if(+b.dataset.k===next){
-   $("s"+next).textContent=(next+1)+". "+STEPS[next];b.remove();next++;$("fb").textContent="Ondo! 👍";score+=5;
-   if(next===STEPS.length){$("fb").textContent="Prozesua osatu duzu! 🎉";setTimeout(()=>{i++;orderRound()},1500)}
+   $("s"+next).textContent=(next+1)+". "+S[next];b.remove();next++;$("fb").textContent="Ondo! 👍";score+=5;
+   if(next===S.length){$("fb").textContent="Prozesua osatu duzu! 🎉";setTimeout(()=>{i++;orderRound()},1500)}
   }else{$("fb").textContent="Hori ez da hurrengo urratsa. Saiatu berriro!";score=Math.max(0,score-2)}
  });
 }
 /* 2. Blanks */
-function startBlank(){score=0;i=0;qs=sh(BLANKS);blank()}
+function startBlank(){score=0;i=0;qs=sh(BLANKS).slice(0,10);blank()}
 function blank(){
  if(i>=qs.length)return end();
  const q=qs[i];choice(q[0].replace("___","_____"),"Aukeratu hitz zuzena.",q[1],q[2],blank);
 }
-/* 3. What is produced */
-function startWhat(){score=0;i=0;qs=sh(PLACES);what()}
+/* 3. Zer eta non? */
+function startWhat(){score=0;i=0;qs=sh(WQ).slice(0,10);what()}
 function what(){
  if(i>=qs.length)return end();
- const q=qs[i];choice(q[0]+" zer sortzen da?","Aukeratu erantzun zuzena.",q[1],WHAT.filter(x=>x!==q[1]),what);
+ const q=qs[i];choice(q[0],"Aukeratu erantzun zuzena.",q[1],q[2],what);
+}
+/* 4. Egia ala gezurra */
+function startTF(){score=0;i=0;qs=sh(TT).slice(0,10);tf()}
+function tf(){
+ if(i>=qs.length)return end();
+ lock=false;const q=qs[i];
+ app.innerHTML=head()+`<div class="card"><p class="q">${q[0]}</p><button data-v="1">✅ Egia</button><button data-v="0">❌ Gezurra</button><p class="fb" id="fb"></p></div>`;
+ app.querySelectorAll("button[data-v]").forEach(b=>b.onclick=()=>{
+  if(lock)return;lock=true;const r=(+b.dataset.v)===q[1];
+  if(r){score+=10;b.classList.add("ok");$("fb").textContent="Zuzena! +10 🎉"}
+  else{b.classList.add("bad");$("fb").textContent="Ez. Erantzuna: "+(q[1]?"egia":"gezurra")}
+  setTimeout(()=>{i++;tf()},1300)});
 }
 home();
 </script></body></html>
