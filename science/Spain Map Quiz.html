@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Spain Map Quiz</title>
+<style>
+:root{--bg:#fff4e0;--card:#fff;--ink:#2b2350;--pri:#ff6b4a;--ok:#1f9d63;--bad:#d6334f;--sec:#5b4bdb;--line:#e8d9bd;--sea:#cfe8f7;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1838;--card:#2a2350;--ink:#fff3de;--line:#443b75;--sea:#27406b}}
+:root[data-theme="dark"]{--bg:#1d1838;--card:#2a2350;--ink:#fff3de;--line:#443b75;--sea:#27406b}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;font-size:17px;line-height:1.4}
+main{max-width:640px;margin:0 auto;padding:12px 16px}
+h1{font-size:26px;margin:8px 0 4px}
+p{margin:6px 0}
+.card{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:14px;margin:10px 0}
+button{font:inherit;font-weight:700;color:inherit;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:11px 14px;width:100%;text-align:left;margin:5px 0;cursor:pointer}
+button:focus-visible{outline:3px solid var(--sec)}
+button.big{background:var(--pri);color:#fff;border-color:var(--pri);text-align:center;font-size:18px}
+button.alt{background:var(--sec);color:#fff;border-color:var(--sec);text-align:center;font-size:18px}
+button.ok{background:var(--ok);color:#fff;border-color:var(--ok)}
+button.bad{background:var(--bad);color:#fff;border-color:var(--bad)}
+.top{display:flex;justify-content:space-between;align-items:center;font-weight:700}
+.back{background:none;border:none;width:auto;padding:4px 0;color:var(--sec);margin:0}
+.bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin:6px 0}
+.bar i{display:block;height:100%;background:var(--pri);transition:width .3s}
+.q{font-size:21px;font-weight:800}
+.fb{min-height:26px;font-weight:700;margin:4px 0}
+.wrap{overflow:auto;max-height:62vh;border:2px solid var(--line);border-radius:14px;background:var(--sea);touch-action:pan-x pan-y pinch-zoom}
+.wrap svg{display:block;width:100%;height:auto}
+.zoom{display:flex;gap:8px;margin:6px 0}
+.zoom button{text-align:center;margin:0;width:auto;flex:1}
+.big-n{font-size:48px;font-weight:800;text-align:center}
+.u{cursor:pointer}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid2 button{margin:0}
+.note{font-size:14px;opacity:.75}
+</style></head><body><main><div id="app"></div></main>
+<script>
+const G={"data":[{"n":"A Coruña","c":"Galicia","k":"p","polys":[[0,0,143.0,0.0,131.9,76.1,0.0,50.9],[0,0,111.0,0.0,129.3,72.9,0.0,116.9],[17.7,0.0,129.9,0.0,150.0,77.0,145.6,82.4,130.8,86.7]]},{"n":"Lugo","c":"Galicia","k":"p","polys":[[143.0,0.0,177.0,0.0,177.0,74.9,169.8,84.1,151.0,80.9,138.3,32.2],[186.1,107.8,162.7,104.2,145.6,82.4,165.6,58.0,186.1,73.8]]},{"n":"Ourense","c":"Galicia","k":"p","polys":[[151.3,168.4,126.5,101.8,130.8,86.7,145.6,82.4,183.1,130.4],[140.2,193.8,140.2,100.8,186.1,107.8,197.5,121.8,193.3,135.6]]},{"n":"Pontevedra","c":"Galicia","k":"p","polys":[[0.0,272.8,0.0,116.9,117.9,76.8,130.8,86.7,96.2,206.0,91.7,217.3,9.8,268.4],[0.0,288.1,0.0,132.6,120.9,89.0,121.8,89.3,140.2,138.6,140.2,193.8,136.4,202.6,130.1,209.5,38.0,270.8]]},{"n":"Asturias","c":"Asturias","k":"p","polys":[[193.9,0.0,282.0,0.0,280.6,18.1,271.2,49.4,223.8,67.6,218.3,67.0,197.5,48.7],[177.0,0.0,245.3,0.0,221.8,66.1,218.3,69.7,186.1,73.8,177.0,66.7],[213.5,0.0,303.9,0.0,297.5,44.0,277.1,70.0,272.7,72.3,213.7,4.5]]},{"n":"Cantabria","c":"Cantabria","k":"p","polys":[[303.9,0.0,339.3,0.0,342.2,49.6,316.8,77.5,295.0,60.9],[277.1,70.0,323.0,11.4,327.6,32.8,317.3,80.3]]},{"n":"Biscay","c":"Basque Country","k":"p","polys":[[339.3,0.0,388.7,0.0,383.2,58.8,367.5,64.9,353.4,62.5,342.2,49.6]]},{"n":"Gipuzkoa","c":"Basque Country","k":"p","polys":[[388.7,0.0,443.3,0.0,413.6,73.0,401.1,78.5,383.2,58.8]]},{"n":"Álava","c":"Basque Country","k":"p","polys":[[358.5,68.3,383.2,58.8,401.1,78.5,397.4,85.8,360.8,101.1,358.5,97.9],[353.4,62.5,382.4,67.4,390.8,80.2,360.8,107.8,349.2,95.3]]},{"n":"Navarre","c":"Navarre","k":"p","polys":[[416.6,129.9,397.4,85.8,401.1,78.5,458.8,53.2,454.2,108.8,427.1,128.4],[443.3,0.0,515.4,0.0,451.6,106.6,432.8,111.1,409.3,83.4],[406.4,131.2,419.7,85.2,449.7,70.5,463.6,116.5,434.2,141.5,411.4,139.0,409.2,137.1]]},{"n":"La Rioja","c":"La Rioja","k":"p","polys":[[360.8,107.8,374.1,95.5,397.4,85.8,410.7,116.3,406.4,131.2,360.8,119.5]]},{"n":"Huesca","c":"Aragon","k":"p","polys":[[515.4,0.0,530.8,0.0,517.1,126.0,508.5,135.0,486.3,135.0,463.6,116.5,457.6,96.6],[524.9,126.8,514.8,152.6,478.8,148.0,466.5,114.0,469.5,97.7,498.2,70.5],[519.7,0.0,533.2,0.0,533.2,127.7,510.4,140.2,488.9,130.3,474.7,106.9,473.5,98.0]]},{"n":"Zaragoza","c":"Aragon","k":"p","polys":[[424.0,150.1,463.6,116.5,469.0,120.9,489.1,176.4,485.0,182.2,482.0,183.1,430.4,175.6],[495.9,200.5,475.0,195.7,445.9,163.9,460.5,145.7,514.8,152.6,520.5,168.7,520.1,170.9],[411.4,139.0,460.8,144.4,472.9,172.1,425.0,190.5,411.4,181.5]]},{"n":"Teruel","c":"Aragon","k":"p","polys":[[420.9,222.0,425.0,190.5,454.6,179.1,460.6,180.0,480.6,201.9,472.9,218.2,445.1,243.0,434.6,243.0],[439.4,236.9,437.1,222.0,443.1,202.4,457.1,191.6,495.9,200.5,496.7,201.9,485.2,237.0,439.5,237.0],[416.8,251.2,410.4,222.0,436.5,198.0,456.5,198.0,461.5,202.9,450.6,248.9,429.9,257.9]]},{"n":"Lleida","c":"Catalonia","k":"p","polys":[[520.5,168.7,514.8,152.6,522.2,133.7,557.6,114.4,567.8,153.5,566.4,161.7],[533.2,0.0,602.3,0.0,587.7,89.8,581.6,103.7,552.4,144.0,533.2,144.0]]},{"n":"Girona","c":"Catalonia","k":"p","polys":[[602.3,0.0,740,0,740.0,233.8,612.6,143.7,586.5,97.0],[626.7,0.0,740,0,740.0,194.0,600.2,146.4,581.6,103.7]]},{"n":"Barcelona","c":"Catalonia","k":"p","polys":[[569.8,161.1,561.9,130.9,581.6,103.7,634.2,224.5],[740.0,233.8,740.0,387.1,650.6,326.8,614.8,267.7,566.4,161.7,570.9,136.4,631.6,157.1]]},{"n":"Tarragona","c":"Catalonia","k":"p","polys":[[513.8,199.6,520.5,168.7,566.4,161.7,636.0,314.0],[496.7,201.9,495.9,200.5,520.9,169.8,562.8,181.8,650.6,326.8,625.0,316.6]]},{"n":"Burgos","c":"Castile and León","k":"p","polys":[[308.6,102.0,322.0,81.5,322.0,81.5,333.6,78.6,360.8,107.8,360.8,119.5,341.1,147.3,322.2,143.7],[317.3,80.3,318.3,75.8,342.2,49.6,353.4,62.5,346.2,118.3,340.7,121.6,321.5,102.0]]},{"n":"Soria","c":"Castile and León","k":"p","polys":[[341.1,147.3,360.8,119.5,406.4,131.2,410.0,138.8,397.0,172.1,388.7,174.6,359.0,167.0,342.9,150.6],[352.7,147.4,360.8,137.7,405.6,133.9,411.4,139.0,411.4,181.5,386.9,184.2,360.0,163.5]]},{"n":"Palencia","c":"Castile and León","k":"p","polys":[[272.7,72.3,277.1,70.0,317.3,80.3,318.6,86.8,297.5,119.1,266.9,112.7,265.5,99.6],[257.1,119.2,266.6,100.4,276.1,91.3,306.0,93.8,322.2,143.7,313.4,147.0,257.7,121.4]]},{"n":"León","c":"Castile and León","k":"p","polys":[[202.2,108.7,202.2,86.1,220.7,67.2,257.4,71.3,263.3,77.1,265.8,102.0,257.1,119.2],[197.5,121.8,186.1,107.8,186.1,73.8,221.0,69.3,248.6,93.5,248.9,97.2],[212.7,96.7,212.0,93.6,220.9,68.7,257.4,54.7,272.7,72.3,264.9,102.0,255.1,111.4]]},{"n":"Zamora","c":"Castile and León","k":"p","polys":[[182.0,173.1,197.5,121.8,218.3,111.8,257.1,119.2,257.7,121.4,250.2,156.0,224.0,166.0],[136.4,202.6,140.2,193.8,201.5,126.7,218.3,124.5,241.7,132.0,245.0,150.6,228.4,172.8,204.7,190.9]]},{"n":"Valladolid","c":"Castile and León","k":"p","polys":[[257.7,121.4,313.4,147.0,285.3,181.5,273.4,179.6,250.2,156.0]]},{"n":"Salamanca","c":"Castile and León","k":"p","polys":[[181.6,208.7,241.1,163.1,248.9,161.7,264.0,178.2,243.5,220.0,199.6,216.2],[130.1,209.5,136.4,202.6,242.5,184.5,247.2,224.3,209.8,235.7],[202.1,208.1,237.3,160.9,250.2,156.0,273.4,179.6,240.9,217.0]]},{"n":"Segovia","c":"Castile and León","k":"p","polys":[[313.4,147.0,322.2,143.7,341.1,147.3,342.9,150.6,317.9,201.7,302.1,207.2,285.3,181.5]]},{"n":"Ávila","c":"Castile and León","k":"p","polys":[[246.1,214.7,250.2,206.2,273.4,179.6,285.3,181.5,302.1,207.2,299.3,225.9,295.3,228.6,254.9,233.0,247.2,224.3],[251.1,223.1,252.5,218.4,255.8,214.7,281.4,195.2,300.1,207.9,307.1,231.4,291.4,246.4,254.4,236.9]]},{"n":"Madrid","c":"Community of Madrid","k":"p","polys":[[301.4,212.2,302.1,207.2,340.8,193.6,364.0,234.2,359.7,248.3,319.4,240.1,307.1,231.4],[342.9,150.6,359.0,167.0,341.7,228.9,324.1,225.7,316.7,222.2,311.2,215.5]]},{"n":"Guadalajara","c":"Castilla-La Mancha","k":"p","polys":[[359.0,167.0,367.3,169.1,407.3,199.8,406.0,202.0,364.0,234.2,348.0,206.3],[370.1,186.0,411.4,181.5,425.0,190.5,422.3,211.0,410.4,222.0,367.7,222.0,364.8,208.8]]},{"n":"Cuenca","c":"Castilla-La Mancha","k":"p","polys":[[365.8,268.3,359.7,248.3,364.0,234.2,379.9,222.0,410.4,222.0,419.2,262.6,412.0,271.9,382.7,278.0],[365.3,268.7,366.6,249.7,369.9,244.6,376.3,240.9,392.2,238.7,429.9,257.9,425.3,286.2,384.2,291.5]]},{"n":"Toledo","c":"Castilla-La Mancha","k":"p","polys":[[263.1,273.6,307.1,231.4,352.2,263.3,343.2,272.4,293.5,290.4,279.7,287.5,262.9,274.6],[254.4,236.9,313.2,252.0,320.0,263.4,291.6,286.3,279.5,288.6,256.1,282.1,249.7,272.4],[279.4,278.9,309.1,238.0,359.7,248.3,365.4,267.0,365.3,268.7,342.1,286.5,291.7,286.5,281.0,280.8]]},{"n":"Ciudad Real","c":"Castilla-La Mancha","k":"p","polys":[[286.7,292.8,304.2,286.5,364.1,286.5,367.2,293.6,367.5,302.1,362.1,323.5,344.2,337.9,307.8,343.2,290.6,320.9],[271.9,329.5,279.5,288.6,282.4,288.1,302.4,292.2,344.8,315.0,341.5,321.1,305.8,351.9,305.5,351.9,299.7,350.8],[307.8,312.7,365.3,268.7,384.2,291.5,386.1,309.2,375.3,336.9,344.9,342.1,314.0,327.9,307.8,313.0],[301.1,316.1,303.1,307.1,363.7,291.6,365.8,293.8,369.5,302.8,372.4,334.0,347.4,357.0,306.4,346.6]]},{"n":"Albacete","c":"Castilla-La Mancha","k":"p","polys":[[388.9,334.6,384.2,291.5,425.3,286.2,448.5,311.1,445.3,317.6,440.7,322.6,399.1,342.5],[375.3,336.9,390.2,298.7,422.8,301.2,440.1,314.4,439.2,316.9,410.8,355.1,397.9,360.0],[390.1,334.4,395.3,304.8,423.8,295.1,456.3,307.5,451.7,325.0,444.0,335.3,400.2,348.8]]},{"n":"Cáceres","c":"Extremadura","k":"p","polys":[[38.0,270.8,130.1,209.5,240.5,245.8,243.4,278.5,232.8,287.4],[153.6,252.9,247.2,224.3,252.9,230.8,254.4,236.9,248.7,280.0,233.0,286.1],[148.8,252.0,236.4,252.0,256.1,282.1,232.4,311.1,226.6,311.6]]},{"n":"Badajoz","c":"Extremadura","k":"p","polys":[[0.0,311.7,0.0,288.1,38.0,270.8,190.3,283.8,240.7,322.4,234.7,333.9,218.3,345.2],[168.0,317.3,253.5,309.1,254.9,316.5,246.7,347.7,218.3,362.2],[214.8,332.6,256.1,282.1,279.5,288.6,271.9,329.5,242.6,343.0,218.3,336.8]]},{"n":"Castellón","c":"Valencian Community","k":"p","polys":[[480.2,252.4,496.7,201.9,625.0,316.6,578.1,306.0],[450.6,248.9,453.4,237.0,517.5,237.0,551.3,272.6,459.6,258.5]]},{"n":"Valencia","c":"Valencian Community","k":"p","polys":[[456.7,306.0,445.9,295.6,440.2,284.3,442.1,264.2,448.7,256.9,503.7,265.3,578.1,306.0],[439.0,300.9,425.3,286.2,429.9,257.9,450.6,248.9,490.6,291.8,456.3,307.5]]},{"n":"Alicante","c":"Valencian Community","k":"p","polys":[[740.0,387.1,740.0,465.6,461.9,359.1,449.5,333.7,456.3,307.5,459.6,306.0,578.1,306.0,625.0,316.6,650.6,326.8],[451.9,365.3,444.0,335.3,462.1,311.1,655.1,348.1,663.3,350.8,665.9,352.0,736.3,401.6]]},{"n":"Murcia","c":"Murcia","k":"p","polys":[[403.1,365.4,420.1,342.7,444.0,335.3,465.7,418.2,405.8,380.6],[397.9,360.0,422.2,350.7,431.9,351.6,541.6,486.0,394.0,389.1,392.8,383.3],[740.0,465.6,740,700,604.7,700.0,410.7,378.1,411.6,374.0,424.6,361.8,491.2,370.3]]},{"n":"Almería","c":"Andalusia","k":"p","polys":[[604.7,700.0,441.8,700.0,366.9,424.5,367.7,417.4,394.0,389.1,432.7,414.5],[563.4,700.0,431.6,700.0,354.5,424.5,359.9,410.0,396.3,400.7,428.9,435.0]]},{"n":"Granada","c":"Andalusia","k":"p","polys":[[311.0,412.2,324.7,395.4,352.6,389.3,365.0,396.4,334.5,478.2],[392.8,383.3,394.0,389.1,379.1,405.1,330.2,417.6,330.9,409.7,350.3,375.1],[431.6,700.0,383.4,700.0,328.8,548.1,312.1,479.7,316.0,413.6,328.7,404.5,348.1,401.7]]},{"n":"Jaén","c":"Andalusia","k":"p","polys":[[305.8,351.9,310.7,347.6,358.8,359.9,341.0,391.8,324.7,395.4],[333.9,369.4,367.8,338.2,375.3,336.9,397.9,360.0,392.8,383.3,334.7,372.1]]},{"n":"Córdoba","c":"Andalusia","k":"p","polys":[[262.0,347.9,269.0,344.9,305.7,352.0,305.7,398.8,287.9,401.6,262.0,381.7],[246.7,347.7,248.7,340.2,271.9,329.5,303.6,353.8,292.2,382.1,272.2,377.0],[277.4,358.4,305.8,351.9,324.7,395.4,311.0,412.2,285.0,404.7,273.8,376.3]]},{"n":"Málaga","c":"Andalusia","k":"p","polys":[[256.2,435.5,285.0,404.7,311.0,412.2,315.4,424.5,311.0,498.4],[246.2,446.8,247.5,430.1,291.8,422.1,298.9,425.9,328.8,548.1]]},{"n":"Seville","c":"Andalusia","k":"p","polys":[[222.9,366.3,242.2,364.9,248.6,370.4,265.1,405.0,256.6,419.1,247.8,424.7,209.8,421.5,206.0,392.4],[231.3,373.9,241.1,369.1,247.7,370.8,281.9,397.0,285.0,404.7,264.0,427.1,247.5,430.1,220.6,412.1,220.6,396.9],[218.3,362.2,246.7,347.7,262.0,365.3,262.0,405.5,251.6,413.5,248.6,414.3,224.6,408.7,218.3,396.2]]},{"n":"Cádiz","c":"Andalusia","k":"p","polys":[[227.9,700.0,0,700,0.0,602.3,209.8,421.5,238.2,423.9,247.5,430.1],[383.4,700.0,0,700,0.0,645.6,212.0,438.9,235.0,433.0,328.8,548.1]]},{"n":"Huelva","c":"Andalusia","k":"p","polys":[[0.0,602.3,0.0,317.6,181.7,354.7,202.8,367.9,209.8,421.5],[0.0,497.3,0.0,311.7,195.3,341.6,218.3,362.2,218.3,373.4,188.2,419.7]]},{"n":"Santa Cruz de Tenerife","c":"Canary Islands","k":"i","polys":[[22.8,609.0,22.1,605.8,20.2,603.1,17.2,601.2,13.8,600.6,10.3,601.2,7.4,603.1,5.5,605.8,4.8,609.0,5.5,612.2,7.4,614.9,10.3,616.8,13.8,617.4,17.2,616.8,20.2,614.9,22.1,612.2],[29.7,555.0,29.0,548.6,27.1,543.1,24.1,539.5,20.7,538.2,17.2,539.5,14.3,543.1,12.4,548.6,11.7,555.0,12.4,561.4,14.3,566.9,17.2,570.5,20.7,571.8,24.1,570.5,27.1,566.9,29.0,561.4],[63.2,588.0,62.6,584.8,60.6,582.1,57.7,580.2,54.2,579.6,50.8,580.2,47.9,582.1,45.9,584.8,45.2,588.0,45.9,591.2,47.9,593.9,50.8,595.8,54.2,596.4,57.7,595.8,60.6,593.9,62.6,591.2],[98.9,559.1,94.9,555.7,88.8,555.3,81.4,558.1,73.8,563.6,67.2,571.0,62.7,579.2,60.8,586.8,62.0,592.9,65.9,596.3,72.1,596.7,79.5,593.9,87.1,588.4,93.6,581.0,98.2,572.8,100.0,565.2]]},{"n":"Las Palmas","c":"Canary Islands","k":"i","polys":[[137.0,594.0,136.0,587.6,133.2,582.1,129.0,578.5,124.1,577.2,119.2,578.5,115.0,582.1,112.2,587.6,111.2,594.0,112.2,600.4,115.0,605.9,119.2,609.5,124.1,610.8,129.0,609.5,133.2,605.9,136.0,600.4],[207.1,561.3,200.0,550.1,192.6,542.0,185.9,538.1,181.0,539.0,178.7,544.7,179.2,554.2,182.5,566.2,188.2,578.7,195.2,589.9,202.7,598.0,209.4,601.9,214.2,601.0,216.6,595.3,216.1,585.8,212.8,573.8],[228.9,534.0,227.9,526.0,225.1,519.2,220.9,514.6,216.0,513.0,211.1,514.6,206.9,519.2,204.1,526.0,203.2,534.0,204.1,542.0,206.9,548.8,211.1,553.4,216.0,555.0,220.9,553.4,225.1,548.8,227.9,542.0]]},{"n":"Balearic Islands","c":"Balearic Islands","k":"i","polys":[[660.5,288.0,661.8,279.5,659.3,269.5,653.4,259.6,644.9,251.3,635.1,245.8,625.5,244.0,617.7,246.2,612.7,252.0,611.4,260.5,613.8,270.5,619.8,280.4,628.3,288.7,638.1,294.2,647.6,296.0,655.5,293.8],[701.6,249.0,700.7,246.2,698.0,243.9,694.1,242.3,689.4,241.8,684.8,242.3,680.9,243.9,678.2,246.2,677.3,249.0,678.2,251.8,680.9,254.1,684.8,255.7,689.4,256.2,694.1,255.7,698.0,254.1,700.7,251.8],[578.7,306.0,577.8,302.7,575.4,299.9,571.9,298.0,567.6,297.4,563.4,298.0,559.8,299.9,557.4,302.7,556.6,306.0,557.4,309.3,559.8,312.1,563.4,314.0,567.6,314.6,571.9,314.0,575.4,312.1,577.8,309.3],[572.1,324.0,571.7,322.3,570.8,320.9,569.3,320.0,567.6,319.7,566.0,320.0,564.5,320.9,563.6,322.3,563.2,324.0,563.6,325.7,564.5,327.1,566.0,328.0,567.6,328.3,569.3,328.0,570.8,327.1,571.7,325.7]]},{"n":"Ceuta","c":"Ceuta","k":"c","polys":[[261.8,492.6,261.1,489.1,259.2,486.5,256.5,485.6,253.8,486.5,251.8,489.1,251.1,492.6,251.8,496.1,253.8,498.7,256.5,499.6,259.2,498.7,261.1,496.1]]},{"n":"Melilla","c":"Melilla","k":"c","polys":[[371.2,528.6,370.5,525.1,368.6,522.5,365.9,521.6,363.2,522.5,361.2,525.1,360.5,528.6,361.2,532.1,363.2,534.7,365.9,535.6,368.6,534.7,370.5,532.1]]}],"out":[73.5,72.0,82.7,54.0,101.1,42.0,124.1,39.0,147.1,19.2,179.3,33.0,216.0,31.2,241.3,33.0,280.4,40.8,326.3,37.8,353.9,42.0,367.7,42.0,399.9,45.0,419.2,43.8,436.6,60.0,441.2,66.0,466.5,69.0,475.7,78.0,487.2,75.0,507.9,82.8,533.2,75.0,547.0,78.0,567.6,90.0,579.1,96.0,592.9,102.0,620.5,105.0,645.8,100.2,652.7,108.0,648.1,120.0,648.1,132.0,629.7,147.0,613.6,153.0,602.1,163.2,583.7,174.0,558.4,180.0,542.4,198.0,540.1,204.0,528.6,213.0,514.8,234.0,501.0,249.0,487.2,279.0,491.8,306.0,510.2,318.0,501.0,330.0,482.6,345.0,468.8,369.0,459.6,393.0,432.0,396.0,413.7,429.0,402.2,442.8,386.1,438.0,363.1,441.0,330.9,442.8,298.8,445.2,275.8,456.0,255.1,477.0,243.6,486.0,225.2,474.0,211.4,456.0,209.1,438.0,183.9,417.0,160.9,415.8,156.3,372.0,167.8,354.0,172.4,324.0,179.3,306.0,181.6,288.0,170.1,276.0,156.3,267.0,179.3,243.0,186.1,228.0,183.9,192.0,193.0,186.0,202.2,165.0,216.0,153.0,199.9,129.0,179.3,129.0,160.9,135.0,126.4,126.0,105.7,126.0,93.3,133.8,98.8,111.0,89.6,90.0,78.1,81.0],"frame":[-2.3,492.0,243.6,648.0]};
+const $=id=>document.getElementById(id),app=$("app");
+const sh=a=>a.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+const COMS=[...new Set(G.data.map(d=>d.c))];
+const HUE={};COMS.forEach((c,i)=>HUE[c]=(i*47)%360);
+let level="com",mode="",score=0,i=0,qs=[],wrong=0,lock=false,zoom=1,best=+(()=>{try{return localStorage.getItem("esbest")}catch(e){return 0}})()||0;
+const idx={};G.data.forEach((d,k)=>{d.idx=k});
+function units(){
+ if(level==="com"){const m={};G.data.forEach(d=>{(m[d.c]=m[d.c]||{id:d.c,name:d.c,items:[],sea:false}).items.push(d)});return Object.values(m)}
+ return G.data.filter(d=>d.k!=="c").map(d=>({id:d.n,name:d.n,com:d.c,items:[d]}));
+}
+function color(u,k){
+ const h=HUE[u.items[0].c];return level==="com"?`hsl(${h},60%,72%)`:`hsl(${h},55%,${66+(k%3)*7}%)`;
+}
+function pts(a){return a.map((v,k)=>k%2?","+v+" ":v).join("").trim()}
+function svgMap(){
+ const fr=G.frame,P=[];
+ let h=`<svg viewBox="0 0 740 670" id="map" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="cp"><polygon points="${pts(G.out)}"/></clipPath></defs>
+ <rect x="${fr[0]}" y="${fr[1]}" width="${fr[2]-fr[0]}" height="${fr[3]-fr[1]}" rx="8" fill="none" stroke="#7a8aa8" stroke-dasharray="5 4"/>`;
+ const us=units();
+ us.forEach((u,k)=>{
+  const peninsula=u.items.filter(d=>d.k==="p"),other=u.items.filter(d=>d.k!=="p");
+  const mk=(items,cl)=>{
+   const polys=items.flatMap(d=>d.polys);
+   return `<g ${cl?'clip-path="url(#cp)"':""}>`+polys.map(p=>`<polygon points="${pts(p)}" class="s" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>`).join("")+polys.map(p=>`<polygon points="${pts(p)}" class="f" stroke-width="1.4" stroke-linejoin="round"/>`).join("")+`</g>`;
+  };
+  h+=`<g class="u" data-id="${u.id.replace(/"/g,"")}" data-k="${k}">${peninsula.length?mk(peninsula,true):""}${other.length?mk(other,false):""}</g>`;
+ });
+ h+=`<polygon points="${pts(G.out)}" fill="none" stroke="#4a5568" stroke-width="1.6" stroke-linejoin="round" pointer-events="none"/></svg>`;
+ return h;
+}
+function paintAll(){
+ const us=units();
+ document.querySelectorAll("#map g.u").forEach(g=>{
+  const u=us[+g.dataset.k];if(!u)return;
+  const c=color(u,+g.dataset.k);
+  g.querySelectorAll("polygon.f").forEach(p=>{p.setAttribute("fill",c);p.setAttribute("stroke",c)});
+  g.querySelectorAll("polygon.s").forEach(p=>p.setAttribute("stroke","#fff"));
+  if(level==="prov"&&g.dataset.id==="x"){}
+ });
+}
+function paint(id,fill,stroke){
+ const g=[...document.querySelectorAll("#map g.u")].find(x=>x.dataset.id===id);if(!g)return;
+ g.querySelectorAll("polygon.f").forEach(p=>{p.setAttribute("fill",fill);p.setAttribute("stroke",stroke||fill)});
+}
+function mapBlock(){
+ return `<div class="wrap" id="wrap">${svgMap()}</div><div class="zoom"><button onclick="setZoom(-1)">➖ Zoom out</button><button onclick="setZoom(1)">➕ Zoom in</button></div>`;
+}
+function setZoom(d){zoom=Math.max(1,Math.min(4,zoom+d));$("map").style.width=zoom*100+"%"}
+function head(){return `<div class="top"><button class="back" onclick="home()">← Menu</button><span>⭐ ${score}</span></div><div class="bar"><i style="width:${qs.length?i/qs.length*100:0}%"></i></div>`}
+function home(){
+ zoom=1;
+ app.innerHTML=`<h1>Spain Map Quiz 🗺️</h1><p>Learn the autonomous communities and provinces on a silent map.</p>
+ <div class="card"><p class="q">Autonomous communities</p>
+ <button class="big" onclick="start('com','learn')">👆 Explore the map</button>
+ <button class="big" onclick="start('com','find')">🎯 Find it on the map</button></div>
+ <div class="card"><p class="q">Provinces</p>
+ <button class="alt" onclick="start('prov','learn')">👆 Explore the map</button>
+ <button class="alt" onclick="start('prov','find')">🎯 Find it on the map</button>
+ <button class="alt" onclick="start('prov','which')">🧩 Which community is it in?</button></div>
+ <p>Best score: ${best} points</p>
+ <p class="note">The map is simplified: borders are approximate, so use it to learn locations, not exact shapes.</p>`;
+}
+function start(l,m){
+ level=l;mode=m;score=0;i=0;wrong=0;lock=false;zoom=1;
+ const us=units();
+ if(m==="learn"){
+  app.innerHTML=head()+`<div class="card"><p class="q" id="nm">Tap any region to see its name</p><p id="sub" class="note"></p></div>`+mapBlock();
+  qs=[];paintAll();
+  $("map").addEventListener("click",e=>{
+   const g=e.target.closest("g.u");if(!g)return;
+   paintAll();const u=us[+g.dataset.k];paint(u.id,"#ffd23f","#e09f00");
+   $("nm").textContent=u.name;$("sub").textContent=level==="prov"?"Community: "+u.com:"";
+  });
+  return;
+ }
+ qs=sh(us).slice(0,10);
+ m==="find"?findQ():whichQ();
+}
+function findQ(){
+ if(i>=qs.length)return end();
+ const u=qs[i];wrong=0;lock=false;
+ const done=document.querySelector("#map")?null:null;
+ app.innerHTML=head()+`<div class="card"><p class="q">Find: ${u.name}</p><p class="fb" id="fb">Tap the map</p><button onclick="skip()" style="text-align:center">Skip ⏭</button></div>`+mapBlock();
+ paintAll();
+ qs.slice(0,i).forEach(x=>{if(x.ok)paint(x.id,"#37b26c","#1f9d63")});
+ $("map").style.width=zoom*100+"%";
+ $("map").addEventListener("click",e=>{
+  if(lock)return;const g=e.target.closest("g.u");if(!g)return;
+  const us=units(),t=us[+g.dataset.k];
+  if(t.id===u.id){lock=true;score+=wrong===0?10:5;u.ok=true;paint(u.id,"#37b26c","#1f9d63");$("fb").textContent=wrong===0?"Correct! +10 🎉":"Correct! +5 👍";setTimeout(()=>{i++;findQ()},1000)}
+  else{wrong++;
+   if(wrong>=2)reveal(u,"That was "+t.name+". It's the yellow one.");
+   else $("fb").textContent="Not quite. That's "+t.name+". Try again!"}
+ });
+}
+function reveal(u,msg){lock=true;paint(u.id,"#ffd23f","#e09f00");$("fb").textContent=msg;setTimeout(()=>{i++;findQ()},2200)}
+function skip(){if(lock)return;const u=qs[i];reveal(u,"It's the yellow one: "+u.name)}
+function whichQ(){
+ if(i>=qs.length)return end();
+ const u=qs[i];lock=false;
+ const right=u.com,coms=COMS.filter(c=>c!==right&&c!=="Ceuta"&&c!=="Melilla"),opts=sh([right,...sh(coms).slice(0,3)]);
+ app.innerHTML=head()+`<div class="card"><p class="q">Which community is the highlighted province in?</p><div class="grid2">${opts.map(o=>`<button data-o="${o}">${o}</button>`).join("")}</div><p class="fb" id="fb"></p></div>`+mapBlock();
+ paintAll();paint(u.id,"#ff6b4a","#c2410c");$("map").style.width=zoom*100+"%";
+ app.querySelectorAll("button[data-o]").forEach(b=>b.onclick=()=>{
+  if(lock)return;lock=true;
+  if(b.dataset.o===right){score+=10;b.classList.add("ok");$("fb").textContent="Correct! "+u.name+" is in "+right+" 🎉"}
+  else{b.classList.add("bad");app.querySelectorAll("button[data-o]").forEach(c=>{if(c.dataset.o===right)c.classList.add("ok")});$("fb").textContent=u.name+" is in "+right}
+  setTimeout(()=>{i++;whichQ()},1900)});
+}
+function end(){
+ if(score>best){best=score;try{localStorage.setItem("esbest",best)}catch(e){}}
+ const m=score>=80?"Amazing! Geography champion! 🏆":score>=50?"Great job! Keep practising 👍":"Keep trying, you'll get there! 💪";
+ app.innerHTML=`<div class="card"><div class="big-n">${score}</div><p class="q" style="text-align:center">${m}</p><button class="big" onclick="home()">Back to menu</button></div>`;
+}
+home();
+</script></body></html>
