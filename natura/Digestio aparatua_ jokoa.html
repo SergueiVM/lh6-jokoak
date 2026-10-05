@@ -53,7 +53,10 @@ function home(){
  <div class="card"><button class="big" onclick="startQuiz()">1. Zein organoa da?</button>
  <button class="big" onclick="startPath()">2. Janariaren bidaia</button>
  <button class="big" onclick="startTF()">3. Egia ala gezurra?</button>
- <p>Errekorra: ${best} puntu</p></div>`;
+ </div><div class="card"><p class="q">Ikasi fitxako esaldiak hitzez hitz</p>
+ <button class="alt" onclick="startBuild()">📝 Osatu esaldia (zatiak ordenatu)</button>
+ <button class="alt" onclick="startType()">⌨️ Idatzi falta dena</button>
+ <button class="alt" onclick="startExact()">🔎 Zein esaldi dago zuzen?</button></div><p>Errekorra: ${best} puntu</p>`;
 }
 function head(t){return `<div class="top"><span>${t}</span><span>⭐ ${score}</span></div><div class="bar"><i id="pb" style="width:${i/qs.length*100}%"></i></div>`}
 function end(){
@@ -137,6 +140,67 @@ function tf(){
   if(r){score+=10;b.classList.add("ok");$("fb").textContent="Zuzena! +10 🎉"}
   else{b.classList.add("bad");$("fb").textContent="Ez. Erantzuna: "+(q[1]?"egia":"gezurra")}
   setTimeout(()=>{i++;tf()},1300)});
+}
+/* ===== ESALDIAK HITZEZ HITZ IKASTEKO MODUAK ===== */
+const SENT=[{"t": "Digestio aparatuaren funtzioa digestioa egitea da, hau da, irentsitako elikagaiak mantenugai bihurtzea.", "c": ["Digestio aparatuaren funtzioa", "digestioa egitea da,", "hau da,", "irentsitako elikagaiak", "mantenugai bihurtzea."], "k": ["digestioa egitea", "irentsitako elikagaiak", "mantenugai bihurtzea"]}, {"t": "Digestio aparatua digestio hodiak eta digestio guruinek osatzen dute.", "c": ["Digestio aparatua", "digestio hodiak", "eta digestio guruinek", "osatzen dute."], "k": ["digestio hodiak", "digestio guruinek", "osatzen dute"]}, {"t": "Digestio hodia: muskulu konduktu bat da.", "c": ["Digestio hodia:", "muskulu konduktu", "bat da."], "k": ["muskulu konduktu"]}, {"t": "Hainbat atal ditu: ahoa, faringea, hestegorria, urdaila, heste mehea, heste lodia eta uzkia.", "c": ["Hainbat atal ditu:", "ahoa, faringea, hestegorria,", "urdaila, heste mehea,", "heste lodia eta uzkia."], "k": ["ahoa", "urdaila", "heste mehea", "uzkia"]}, {"t": "Digestio guruinak: hainbat substantzia botatzen dituzte digestioa errazteko.", "c": ["Digestio guruinak:", "hainbat substantzia", "botatzen dituzte", "digestioa errazteko."], "k": ["hainbat substantzia", "botatzen dituzte", "digestioa errazteko"]}, {"t": "Listu guruinak, pankrea eta gibela dira.", "c": ["Listu guruinak,", "pankrea eta gibela", "dira."], "k": ["Listu guruinak", "pankrea", "gibela"]}, {"t": "Ahoa: digestio hodirako sarrera da.", "c": ["Ahoa:", "digestio hodirako", "sarrera da."], "k": ["Ahoa", "sarrera"]}, {"t": "Aho barruan hurrengoak daude: hortzak, mihia eta listu guruinak.", "c": ["Aho barruan", "hurrengoak daude:", "hortzak, mihia", "eta listu guruinak."], "k": ["hortzak", "mihia", "listu guruinak"]}, {"t": "Faringea: elikagaiak hestegorrira bideratzen du.", "c": ["Faringea:", "elikagaiak", "hestegorrira", "bideratzen du."], "k": ["Faringea", "hestegorrira", "bideratzen du"]}, {"t": "Hestegorriak: faringea eta urdaila lotzen ditu.", "c": ["Hestegorriak:", "faringea eta urdaila", "lotzen ditu."], "k": ["Hestegorriak", "lotzen ditu"]}, {"t": "Urdaila: digestio hodian zabalgunea da eta bi balbula ditu: kardia (sarreran) eta piloroa (irteeran).", "c": ["Urdaila:", "digestio hodian zabalgunea da", "eta bi balbula ditu:", "kardia (sarreran)", "eta piloroa (irteeran)."], "k": ["Urdaila", "zabalgunea", "kardia", "sarreran", "piloroa", "irteeran"]}, {"t": "Gibela: guruin handi bat da eta behazuna sortzen du.", "c": ["Gibela:", "guruin handi bat da", "eta behazuna", "sortzen du."], "k": ["Gibela", "guruin handi bat", "behazuna", "sortzen du"]}, {"t": "Pankrea: guruin bat da eta pankreako guruina sortzen du.", "c": ["Pankrea:", "guruin bat da", "eta pankreako guruina", "sortzen du."], "k": ["Pankrea", "pankreako guruina", "sortzen du"]}, {"t": "Heste mehea: hodi luze bat da eta haren hormek tolesdurak eta biloak dituzte.", "c": ["Heste mehea:", "hodi luze bat da", "eta haren hormek", "tolesdurak eta biloak", "dituzte."], "k": ["Heste mehea", "hodi luze bat", "tolesdurak", "biloak"]}, {"t": "Heste lodia: hiru atal ditu: itsua, kolona eta ondestea.", "c": ["Heste lodia:", "hiru atal ditu:", "itsua, kolona", "eta ondestea."], "k": ["Heste lodia", "hiru atal", "itsua", "kolona", "ondestea"]}, {"t": "Uzkia: azken zatia da eta hortik hondakinak kanporatzen dira.", "c": ["Uzkia:", "azken zatia da", "eta hortik hondakinak", "kanporatzen dira."], "k": ["Uzkia", "azken zatia", "hondakinak", "kanporatzen dira"]}],GR=[["Ahoa", "Faringea", "Hestegorriak", "Urdaila", "Gibela", "Pankrea", "Heste mehea", "Heste lodia", "Uzkia"], ["ahoa", "faringea", "hestegorria", "urdaila", "heste mehea", "heste lodia", "uzkia", "pankrea", "gibela", "listu guruinak"], ["Listu guruinak", "Pankrea", "Gibela", "Ahoa", "Urdaila"], ["kardia", "piloroa"], ["sarreran", "irteeran"], ["hortzak", "mihia", "listu guruinak"], ["hestegorrira", "urdailera", "heste mehera", "uzkira"], ["bideratzen du", "lotzen ditu", "sortzen du", "kanporatzen dira", "botatzen dituzte"], ["behazuna", "pankreako guruina", "listua"], ["digestio hodiak", "digestio guruinek"], ["itsua", "kolona", "ondestea", "kardia"], ["tolesdurak", "biloak", "hortzak"], ["Urdaila", "Heste lodia"]];
+const norm=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[.,;:()¿?¡!_]/g," ").replace(/\s+/g," ").trim();
+const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+const rx=k=>new RegExp("(?<![\\p{L}])"+esc(k)+"(?![\\p{L}])","u");
+const keysOf=s=>s.k.filter(k=>rx(k).test(s.t));
+function variants(s){
+ const out=new Set();
+ keysOf(s).forEach(k=>{
+  const pool=[...new Set(GR.filter(g=>g.includes(k)).flat())].filter(w=>w!==k&&!rx(w).test(s.t));
+  pool.forEach(w=>out.add(s.t.replace(rx(k),w)));
+ });
+ return [...out];
+}
+function lit(s){return `<p class="note">📖 Fitxan: <b>${s.t}</b></p>`}
+/* A. Osatu esaldia */
+let bPos=0,bErr=0,bS=null;
+function startBuild(){score=0;i=0;qs=sh(SENT).slice(0,8);build()}
+function build(){
+ if(i>=qs.length)return end();
+ const s=bS=qs[i];bPos=0;bErr=0;lock=false;
+ app.innerHTML=head(`${i+1}/${qs.length}`)+`<div class="card"><p class="q">Osatu esaldia, fitxan dagoen bezala</p><div class="slot" id="bs" style="min-height:72px"></div><div id="bc">${sh(s.c.map((c,k)=>k)).map(k=>`<button data-k="${k}">${s.c[k]}</button>`).join("")}</div><p class="fb" id="fb"></p></div>`;
+ app.querySelectorAll("button[data-k]").forEach(b=>b.onclick=()=>{
+  if(lock)return;
+  if(+b.dataset.k===bPos){
+   $("bs").textContent=s.c.slice(0,bPos+1).join(" ");b.remove();bPos++;$("fb").textContent="Ondo! 👍";
+   if(bPos===s.c.length){lock=true;const pts=bErr===0?10:bErr<3?5:2;score+=pts;$("fb").textContent="Esaldi osoa! +"+pts+" 🎉";setTimeout(()=>{i++;build()},1600)}
+  }else{bErr++;$("fb").textContent="Hori ez da hurrengo zatia. Saiatu berriro!"}
+ });
+}
+/* B. Idatzi falta dena */
+function startType(){score=0;i=0;qs=sh(SENT.filter(s=>keysOf(s).length)).slice(0,8);typeQ()}
+function typeQ(){
+ if(i>=qs.length)return end();
+ const s=qs[i],ks=keysOf(s),k=ks[Math.floor(Math.random()*ks.length)];
+ let tries=0,hint=false;lock=false;
+ app.innerHTML=head(`${i+1}/${qs.length}`)+`<div class="card"><p class="q">${s.t.replace(rx(k),"_____")}</p><p class="note">Idatzi falta dena (${k.replace(/\s/g,"").length} letra)</p>
+ <input id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" style="width:100%;font:inherit;padding:12px;border:2px solid var(--line);border-radius:12px;background:var(--card);color:inherit">
+ <button class="big" id="ck">Egiaztatu</button><button id="hn" style="text-align:center">💡 Pista</button><p class="fb" id="fb"></p><div id="lt"></div></div>`;
+ const next=ms=>{lock=true;$("lt").innerHTML=lit(s);setTimeout(()=>{i++;typeQ()},ms)};
+ $("hn").onclick=()=>{if(lock)return;hint=true;$("fb").textContent="Hasten da: "+k[0]+"…"};
+ const check=()=>{
+  if(lock)return;
+  if(norm($("ans").value)===norm(k)){const pts=hint?5:tries===0?10:5;score+=pts;$("fb").textContent="Zuzena! +"+pts+" 🎉";next(2200)}
+  else{tries++;if(tries>=3){$("fb").textContent="Erantzuna: "+k;next(3200)}else $("fb").textContent="Ez da zuzena. Saiatu berriro!"}
+ };
+ $("ck").onclick=check;$("ans").onkeydown=e=>{if(e.key==="Enter")check()};$("ans").focus();
+}
+/* C. Zein esaldi da zuzena? */
+function startExact(){score=0;i=0;qs=sh(SENT.filter(s=>variants(s).length>=2)).slice(0,8);exact()}
+function exact(){
+ if(i>=qs.length)return end();
+ const s=qs[i];lock=false;
+ const opts=sh([s.t,...sh(variants(s)).slice(0,2)]);
+ app.innerHTML=head(`${i+1}/${qs.length}`)+`<div class="card"><p class="q">Zein esaldi dago zuzen, fitxan dagoen bezala?</p>${opts.map(o=>`<button data-o="${o.replace(/"/g,"&quot;")}">${o}</button>`).join("")}<p class="fb" id="fb"></p></div>`;
+ app.querySelectorAll("button[data-o]").forEach(b=>b.onclick=()=>{
+  if(lock)return;lock=true;
+  if(b.dataset.o===s.t){score+=10;b.classList.add("ok");$("fb").textContent="Zuzena! +10 🎉"}
+  else{b.classList.add("bad");app.querySelectorAll("button[data-o]").forEach(c=>{if(c.dataset.o===s.t)c.classList.add("ok")});$("fb").textContent="Ez. Zuzena berdez dago."}
+  setTimeout(()=>{i++;exact()},2400)});
 }
 home();
 </script></body></html>

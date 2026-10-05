@@ -48,7 +48,10 @@ function home(){
  <button class="big" onclick="startBlank()">2. Bete hutsuneak</button>
  <button class="big" onclick="startWhat()">3. Zer eta non?</button>
  <button class="big" onclick="startTF()">4. Egia ala gezurra?</button>
- <p>Errekorra: ${best} puntu</p></div>`;
+ </div><div class="card"><p class="q">Ikasi fitxako esaldiak hitzez hitz</p>
+ <button class="alt" onclick="startBuild()">📝 Osatu esaldia (zatiak ordenatu)</button>
+ <button class="alt" onclick="startType()">⌨️ Idatzi falta dena</button>
+ <button class="alt" onclick="startExact()">🔎 Zein esaldi dago zuzen?</button></div><p>Errekorra: ${best} puntu</p>`;
 }
 function head(){return `<div class="top"><button class="back" onclick="home()">← Atzera</button><span>⭐ ${score}</span></div><div class="bar"><i style="width:${i/qs.length*100}%"></i></div>`}
 function end(){
@@ -106,6 +109,67 @@ function tf(){
   if(r){score+=10;b.classList.add("ok");$("fb").textContent="Zuzena! +10 🎉"}
   else{b.classList.add("bad");$("fb").textContent="Ez. Erantzuna: "+(q[1]?"egia":"gezurra")}
   setTimeout(()=>{i++;tf()},1300)});
+}
+/* ===== ESALDIAK HITZEZ HITZ IKASTEKO MODUAK ===== */
+const SENT=[{"t": "Ahoan hortzek elikagaiak birrindu egiten dituzte.", "c": ["Ahoan", "hortzek", "elikagaiak birrindu", "egiten dituzte."], "k": ["Ahoan", "hortzek", "birrindu"]}, {"t": "Mihiari esker, birrindutakoa listuarekin nahasten da eta elikadura boloa sortzen da.", "c": ["Mihiari esker,", "birrindutakoa listuarekin", "nahasten da", "eta elikadura boloa", "sortzen da."], "k": ["Mihiari", "listuarekin", "elikadura boloa"]}, {"t": "Elikadura boloa masa oretsua da.", "c": ["Elikadura boloa", "masa oretsua", "da."], "k": ["Elikadura boloa", "masa oretsua"]}, {"t": "Elikadura boloa urdailera igarotzen da, faringea eta hestegorria zeharkatuz.", "c": ["Elikadura boloa", "urdailera igarotzen da,", "faringea eta hestegorria", "zeharkatuz."], "k": ["urdailera", "faringea", "hestegorria", "zeharkatuz"]}, {"t": "Urdailaren hormen mugimenduei esker elikadura boloa urin gastrikoekin nahasten da eta boloa kimo izeneko substantzia bihurtzen da.", "c": ["Urdailaren hormen", "mugimenduei esker", "elikadura boloa", "urin gastrikoekin nahasten da", "eta boloa", "kimo izeneko substantzia", "bihurtzen da."], "k": ["mugimenduei", "urin gastrikoekin", "kimo"]}, {"t": "Kimoa heste mehera igarotzen da; han pankreako urinekin, behazunarekin eta hesteetako urinekin nahasten da.", "c": ["Kimoa", "heste mehera igarotzen da;", "han pankreako urinekin,", "behazunarekin", "eta hesteetako urinekin", "nahasten da."], "k": ["Kimoa", "heste mehera", "pankreako urinekin", "behazunarekin", "hesteetako urinekin"]}, {"t": "Horrela, kiloa sortzen da.", "c": ["Horrela,", "kiloa", "sortzen da."], "k": ["kiloa"]}, {"t": "Kiloa mantenugaiak dituen likidoa da.", "c": ["Kiloa", "mantenugaiak dituen", "likidoa da."], "k": ["Kiloa", "mantenugaiak", "likidoa"]}, {"t": "Heste mehean xurgatze prozesua gertatzen da, hau da, biloek mantenugaiak odolera pasatzen dituzte.", "c": ["Heste mehean", "xurgatze prozesua gertatzen da,", "hau da,", "biloek", "mantenugaiak odolera", "pasatzen dituzte."], "k": ["Heste mehean", "xurgatze", "biloek", "odolera"]}, {"t": "Azkenik, heste lodiak gelditzen den ura xurgatzen du eta aprobetxatzen ez diren substantziak gorotz bihurtzen ditu.", "c": ["Azkenik,", "heste lodiak", "gelditzen den ura", "xurgatzen du", "eta aprobetxatzen ez diren substantziak", "gorotz bihurtzen ditu."], "k": ["heste lodiak", "ura", "xurgatzen du", "gorotz"]}, {"t": "Gero, hondakinak uzkitik kanporatzen dituzte.", "c": ["Gero,", "hondakinak", "uzkitik", "kanporatzen dituzte."], "k": ["hondakinak", "uzkitik", "kanporatzen"]}],GR=[["Ahoan", "Urdailean", "Heste mehean", "Heste lodian"], ["hortzek", "biloek", "guruinek"], ["birrindu", "xurgatu", "nahastu", "kanporatu"], ["listuarekin", "urin gastrikoekin", "behazunarekin", "pankreako urinekin", "hesteetako urinekin", "odolarekin"], ["elikadura boloa", "kimoa", "kiloa", "gorotza"], ["Elikadura boloa", "Kimoa", "Kiloa", "Gorotza"], ["kimo", "kilo", "gorotz"], ["urdailera", "heste mehera", "odolera", "uzkira", "hestegorrira"], ["uzkitik", "ahotik", "urdailetik", "heste mehetik"], ["faringea", "hestegorria", "urdaila", "gibela", "pankrea"], ["ura", "odola", "kiloa", "listua"], ["xurgatzen du", "birrintzen du", "kanporatzen du"], ["xurgatze", "birrintze", "kanporatze"], ["Kiloa", "Kimoa", "Gorotza"]];
+const norm=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[.,;:()¿?¡!_]/g," ").replace(/\s+/g," ").trim();
+const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+const rx=k=>new RegExp("(?<![\\p{L}])"+esc(k)+"(?![\\p{L}])","u");
+const keysOf=s=>s.k.filter(k=>rx(k).test(s.t));
+function variants(s){
+ const out=new Set();
+ keysOf(s).forEach(k=>{
+  const pool=[...new Set(GR.filter(g=>g.includes(k)).flat())].filter(w=>w!==k&&!rx(w).test(s.t));
+  pool.forEach(w=>out.add(s.t.replace(rx(k),w)));
+ });
+ return [...out];
+}
+function lit(s){return `<p class="note">📖 Fitxan: <b>${s.t}</b></p>`}
+/* A. Osatu esaldia */
+let bPos=0,bErr=0,bS=null;
+function startBuild(){score=0;i=0;qs=sh(SENT).slice(0,8);build()}
+function build(){
+ if(i>=qs.length)return end();
+ const s=bS=qs[i];bPos=0;bErr=0;lock=false;
+ app.innerHTML=head(`${i+1}/${qs.length}`)+`<div class="card"><p class="q">Osatu esaldia, fitxan dagoen bezala</p><div class="slot" id="bs" style="min-height:72px"></div><div id="bc">${sh(s.c.map((c,k)=>k)).map(k=>`<button data-k="${k}">${s.c[k]}</button>`).join("")}</div><p class="fb" id="fb"></p></div>`;
+ app.querySelectorAll("button[data-k]").forEach(b=>b.onclick=()=>{
+  if(lock)return;
+  if(+b.dataset.k===bPos){
+   $("bs").textContent=s.c.slice(0,bPos+1).join(" ");b.remove();bPos++;$("fb").textContent="Ondo! 👍";
+   if(bPos===s.c.length){lock=true;const pts=bErr===0?10:bErr<3?5:2;score+=pts;$("fb").textContent="Esaldi osoa! +"+pts+" 🎉";setTimeout(()=>{i++;build()},1600)}
+  }else{bErr++;$("fb").textContent="Hori ez da hurrengo zatia. Saiatu berriro!"}
+ });
+}
+/* B. Idatzi falta dena */
+function startType(){score=0;i=0;qs=sh(SENT.filter(s=>keysOf(s).length)).slice(0,8);typeQ()}
+function typeQ(){
+ if(i>=qs.length)return end();
+ const s=qs[i],ks=keysOf(s),k=ks[Math.floor(Math.random()*ks.length)];
+ let tries=0,hint=false;lock=false;
+ app.innerHTML=head(`${i+1}/${qs.length}`)+`<div class="card"><p class="q">${s.t.replace(rx(k),"_____")}</p><p class="note">Idatzi falta dena (${k.replace(/\s/g,"").length} letra)</p>
+ <input id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" style="width:100%;font:inherit;padding:12px;border:2px solid var(--line);border-radius:12px;background:var(--card);color:inherit">
+ <button class="big" id="ck">Egiaztatu</button><button id="hn" style="text-align:center">💡 Pista</button><p class="fb" id="fb"></p><div id="lt"></div></div>`;
+ const next=ms=>{lock=true;$("lt").innerHTML=lit(s);setTimeout(()=>{i++;typeQ()},ms)};
+ $("hn").onclick=()=>{if(lock)return;hint=true;$("fb").textContent="Hasten da: "+k[0]+"…"};
+ const check=()=>{
+  if(lock)return;
+  if(norm($("ans").value)===norm(k)){const pts=hint?5:tries===0?10:5;score+=pts;$("fb").textContent="Zuzena! +"+pts+" 🎉";next(2200)}
+  else{tries++;if(tries>=3){$("fb").textContent="Erantzuna: "+k;next(3200)}else $("fb").textContent="Ez da zuzena. Saiatu berriro!"}
+ };
+ $("ck").onclick=check;$("ans").onkeydown=e=>{if(e.key==="Enter")check()};$("ans").focus();
+}
+/* C. Zein esaldi da zuzena? */
+function startExact(){score=0;i=0;qs=sh(SENT.filter(s=>variants(s).length>=2)).slice(0,8);exact()}
+function exact(){
+ if(i>=qs.length)return end();
+ const s=qs[i];lock=false;
+ const opts=sh([s.t,...sh(variants(s)).slice(0,2)]);
+ app.innerHTML=head(`${i+1}/${qs.length}`)+`<div class="card"><p class="q">Zein esaldi dago zuzen, fitxan dagoen bezala?</p>${opts.map(o=>`<button data-o="${o.replace(/"/g,"&quot;")}">${o}</button>`).join("")}<p class="fb" id="fb"></p></div>`;
+ app.querySelectorAll("button[data-o]").forEach(b=>b.onclick=()=>{
+  if(lock)return;lock=true;
+  if(b.dataset.o===s.t){score+=10;b.classList.add("ok");$("fb").textContent="Zuzena! +10 🎉"}
+  else{b.classList.add("bad");app.querySelectorAll("button[data-o]").forEach(c=>{if(c.dataset.o===s.t)c.classList.add("ok")});$("fb").textContent="Ez. Zuzena berdez dago."}
+  setTimeout(()=>{i++;exact()},2400)});
 }
 home();
 </script></body></html>
