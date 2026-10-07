@@ -41,7 +41,7 @@ const $=id=>document.getElementById(id),app=$("app");
 const sh=a=>a.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
 const COMS=[...new Set(G.data.map(d=>d.c))];
 const HUE={};COMS.forEach((c,i)=>HUE[c]=(i*47)%360);
-let level="com",mode="",score=0,i=0,qs=[],wrong=0,lock=false,zoom=1,best=+(()=>{try{return localStorage.getItem("esbest")}catch(e){return 0}})()||0;
+let promptOf=u=>"Find: "+u.name,level="com",mode="",score=0,i=0,qs=[],wrong=0,lock=false,zoom=1,best=+(()=>{try{return localStorage.getItem("esbest")}catch(e){return 0}})()||0;
 const idx={};G.data.forEach((d,k)=>{d.idx=k});
 function units(){
  if(level==="com"){const m={};G.data.forEach(d=>{(m[d.c]=m[d.c]||{id:d.c,name:d.c,items:[],sea:false}).items.push(d)});return Object.values(m)}
@@ -102,6 +102,11 @@ function home(){
  <button class="alt" onclick="startFlags('name')">❓ Whose flag is this?</button>
  <button class="alt" onclick="startFlags('flag')">🚩 Find the flag</button>
  <p class="note">Official flags with coats of arms. Images: Wikimedia Commons.</p></div>
+ <div class="card"><p class="q">Capitals</p>
+ <button class="alt" onclick="capsLearn()">📖 Study the capitals</button>
+ <button class="alt" onclick="startCap('toCap')">🏙️ Community → capital</button>
+ <button class="alt" onclick="startCap('toCom')">🌍 Capital → community</button>
+ <button class="alt" onclick="startCapMap()">🗺️ Capital → find it on the map</button></div>
  <p>Best score: ${best} points</p>
  <p class="note">The map is simplified: borders are approximate, so use it to learn locations, not exact shapes.</p>`;
 }
@@ -118,14 +123,14 @@ function start(l,m){
   });
   return;
  }
- qs=sh(us).slice(0,10);
+ qs=sh(us).slice(0,10);promptOf=u=>"Find: "+u.name;
  m==="find"?findQ():whichQ();
 }
 function findQ(){
  if(i>=qs.length)return end();
  const u=qs[i];wrong=0;lock=false;
  const done=document.querySelector("#map")?null:null;
- app.innerHTML=head()+`<div class="card"><p class="q">Find: ${u.name}</p><p class="fb" id="fb">Tap the map</p><button onclick="skip()" style="text-align:center">Skip ⏭</button></div>`+mapBlock();
+ app.innerHTML=head()+`<div class="card"><p class="q">${promptOf(u)}</p><p class="fb" id="fb">Tap the map</p><button onclick="skip()" style="text-align:center">Skip ⏭</button></div>`+mapBlock();
  paintAll();
  qs.slice(0,i).forEach(x=>{if(x.ok)paint(x.id,"#37b26c","#1f9d63")});
  $("map").style.width=zoom*100+"%";
@@ -176,6 +181,30 @@ function flagQ(kind){
   if(b.dataset.o===right){score+=10;b.classList.add("ok");$("fb").textContent="Correct! +10 🎉"}
   else{b.classList.add("bad");app.querySelectorAll("button[data-o]").forEach(c=>{if(c.dataset.o===right)c.classList.add("ok")});$("fb").textContent=name?"It's the flag of "+right:"That was the flag of "+b.dataset.o}
   setTimeout(()=>{i++;flagQ(kind)},1700)});
+}
+/* ===== CAPITALS ===== */
+const CAP={"Andalusia":"Seville","Aragon":"Zaragoza","Asturias":"Oviedo","Balearic Islands":"Palma","Canary Islands":"Las Palmas & Santa Cruz de Tenerife","Cantabria":"Santander","Castile and León":"Valladolid","Castilla-La Mancha":"Toledo","Catalonia":"Barcelona","Valencian Community":"Valencia","Extremadura":"Mérida","Galicia":"Santiago de Compostela","La Rioja":"Logroño","Community of Madrid":"Madrid","Murcia":"Murcia","Navarre":"Pamplona","Basque Country":"Vitoria-Gasteiz"};
+const CN=Object.keys(CAP);
+function capsLearn(){
+ app.innerHTML=`<div class="top"><button class="back" onclick="home()">← Menu</button><span></span></div><div class="card"><p class="q">Study the capitals</p><p>Tap a community to show or hide its capital.</p><div id="cg">${CN.map(n=>`<button data-n="${n}" style="display:flex;justify-content:space-between;gap:8px"><span>${n}</span><span style="color:var(--sec)"></span></button>`).join("")}</div><p class="note">The Canary Islands share two capitals. Castile and León has no official capital: Valladolid is the seat of its government.</p></div>`;
+ $("cg").onclick=e=>{const b=e.target.closest("button");if(!b)return;const s=b.lastElementChild;s.textContent=s.textContent?"":CAP[b.dataset.n]};
+}
+function startCap(kind){score=0;i=0;qs=sh(CN).slice(0,10);capQ(kind)}
+function capQ(kind){
+ if(i>=qs.length)return end();
+ const c=qs[i],toCap=kind==="toCap",right=toCap?CAP[c]:c,pool=toCap?CN.map(x=>CAP[x]):CN;
+ const opts=sh([right,...sh(pool.filter(x=>x!==right)).slice(0,3)]);lock=false;
+ app.innerHTML=head()+`<div class="card"><p class="q">${toCap?"What is the capital of "+c+"?":"Which community has "+CAP[c]+" as its capital?"}</p><div class="grid2">${opts.map(o=>`<button data-o="${o}">${o}</button>`).join("")}</div><p class="fb" id="fb"></p></div>`;
+ app.querySelectorAll("button[data-o]").forEach(b=>b.onclick=()=>{
+  if(lock)return;lock=true;
+  if(b.dataset.o===right){score+=10;b.classList.add("ok");$("fb").textContent="Correct! +10 🎉"}
+  else{b.classList.add("bad");app.querySelectorAll("button[data-o]").forEach(x=>{if(x.dataset.o===right)x.classList.add("ok")});$("fb").textContent=toCap?"The capital of "+c+" is "+right:CAP[c]+" is the capital of "+right}
+  setTimeout(()=>{i++;capQ(kind)},1800)});
+}
+function startCapMap(){
+ level="com";mode="find";score=0;i=0;wrong=0;lock=false;zoom=1;
+ promptOf=u=>"Tap the community whose capital is "+CAP[u.id];
+ qs=sh(units().filter(u=>CAP[u.id])).slice(0,10);findQ();
 }
 home();
 </script></body></html>
