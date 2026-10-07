@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="eu"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ff6b4a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 <title>Ikasteko jokoak</title>
 <style>
 :root{--bg:#fff4e0;--card:#fff;--ink:#2b2350;--pri:#ff6b4a;--sec:#5b4bdb;--line:#e8d9bd;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -24,7 +27,7 @@ a.game:focus-visible{outline:3px solid var(--sec)}
 <p>Aukeratu joko bat eta ikasi jolasean!</p>
 <div id="list"></div>
 <script>
-/* ===== JOKO BERRIA GEHITZEKO: kopiatu lerro bat eta aldatu datuak ===== */
+/* ===== JOKO BERRIA GEHITZEKO: kopiatu lerro bat; linean irekitzen denean cachean gordeko da ===== */
 const GAMES = [
   { icon: "🍎", title: "Digestio aparatua", desc: "Organoak, funtzioak eta janariaren bidaia", subject: "Natura", url: "natura/Digestio aparatua_ jokoa.html" },
   { icon: "🍽️", title: "Digestioaren prozesua", desc: "Urratsak ordenatu, hutsuneak bete eta zer sortzen den jakin", subject: "Natura", url: "natura/Digestioaren prozesua_ jokoa.html" },
@@ -36,7 +39,7 @@ const GAMES = [
 const list = document.getElementById("list");
 GAMES.forEach(g => {
   const a = document.createElement("a");
-  a.className = "game"; a.href = g.url; a.target = "_blank"; a.rel = "noopener";
+  a.className = "game"; a.href = g.url;
   const ico = document.createElement("span"); ico.className = "ico"; ico.textContent = g.icon;
   const box = document.createElement("span");
   const t = document.createElement("div"); t.className = "t"; t.textContent = g.title;
@@ -45,5 +48,14 @@ GAMES.forEach(g => {
   if (g.subject) { const s = document.createElement("span"); s.className = "tag"; s.textContent = g.subject; box.append(s); }
   a.append(ico, box); list.append(a);
 });
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(error => {
+      console.error("Ezin izan da service worker-a erregistratu:", error);
+    });
+  });
+}
 </script>
 </main></body></html>
