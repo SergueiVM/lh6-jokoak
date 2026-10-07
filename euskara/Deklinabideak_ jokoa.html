@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="eu"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Deklinabideak: jokoa</title>
+<style>
+:root{--bg:#fff4e0;--card:#fff;--ink:#2b2350;--pri:#ff6b4a;--ok:#1f9d63;--bad:#d6334f;--sec:#5b4bdb;--line:#e8d9bd;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1838;--card:#2a2350;--ink:#fff3de;--line:#443b75}}
+:root[data-theme="dark"]{--bg:#1d1838;--card:#2a2350;--ink:#fff3de;--line:#443b75}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;font-size:17px;line-height:1.4}
+main{max-width:600px;margin:0 auto;padding:14px 16px}
+h1{font-size:26px;margin:8px 0 4px}
+p{margin:6px 0}
+.card{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:14px;margin:10px 0}
+button{font:inherit;font-weight:700;color:inherit;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px 14px;width:100%;text-align:left;margin:6px 0;cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--sec)}
+button.big{background:var(--pri);color:#fff;border-color:var(--pri);text-align:center;font-size:18px}
+button.alt{background:var(--sec);color:#fff;border-color:var(--sec);text-align:center;font-size:17px}
+button.ok{background:var(--ok);color:#fff;border-color:var(--ok)}
+button.bad{background:var(--bad);color:#fff;border-color:var(--bad)}
+.top{display:flex;justify-content:space-between;align-items:center;font-weight:700}
+.back{background:none;border:none;width:auto;padding:4px 0;color:var(--sec);margin:0}
+.bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin:6px 0}
+.bar i{display:block;height:100%;background:var(--pri);transition:width .3s}
+.q{font-size:20px;font-weight:700}
+.q b,.q u{color:var(--pri)}
+.fb{min-height:26px;font-weight:700;margin:6px 0}
+.note{font-size:14px;opacity:.8}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid2 button{margin:0;text-align:center}
+.big-n{font-size:48px;font-weight:800;text-align:center}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{border:1px solid var(--line);padding:6px 4px;text-align:center}
+th{background:var(--line)}
+td:first-child{font-weight:800;text-align:left}
+.sc{overflow-x:auto}
+select,input{font:inherit;padding:10px;border:2px solid var(--line);border-radius:12px;background:var(--card);color:inherit;width:100%}
+</style></head><body><main><div id="app"></div></main>
+<script>
+/* ===== DATUAK ===== */
+const CASES=["NOR","NORK","NORI","NOREN","NORENTZAT","NOREKIN","NON","NONDIK","NORA","NONGO"];
+const LABEL={NOR:"NOR/ZER",NORK:"NORK/ZERK",NORI:"NORI",NOREN:"NOREN(A)",NOREKIN:"NOREKIN",NORENTZAT:"NORENTZAT",NON:"NON",NONDIK:"NONDIK",NORA:"NORA",NONGO:"NONGO(A)",ZERTAZ:"ZERTAZ"};
+const TAB={ /* fitxako taula: singularra | plurala | mugagabea */
+NOR:["-A","-AK","-"],NORK:["-AK","-EK","-(E)K"],NORI:["-ARI","-EI","-(R)I"],NOREN:["-AREN","-EN","-(R)EN"],
+NOREKIN:["-AREKIN","-EKIN","-(R)EKIN"],NORENTZAT:["-ARENTZAT","-ENTZAT","-(R)ENTZAT"],NON:["-AN","-ETAN","-(E)TAN"],
+NONDIK:["-TIK","-ETATIK","-(E)TATIK"],NORA:["-RA","-ETARA","-(E)TARA"],NONGO:["-(E)KO","-ETAKO","-(E)TAKO"]};
+const NUMN=["singularra","plurala","mugagabea"],NUML=["singularrean","pluralean","mugagabean"];
+const S0a={NOR:"",NORK:"k",NORI:"ri",NOREN:"ren",NOREKIN:"rekin",NORENTZAT:"rentzat",NON:"n",NORA:"ra",NONDIK:"tik",NONGO:"ko"};
+const S0v={NOR:"a",NORK:"ak",NORI:"ari",NOREN:"aren",NOREKIN:"arekin",NORENTZAT:"arentzat",NON:"an",NORA:"ra",NONDIK:"tik",NONGO:"ko"};
+const S0c={NOR:"a",NORK:"ak",NORI:"ari",NOREN:"aren",NOREKIN:"arekin",NORENTZAT:"arentzat",NON:"ean",NORA:"era",NONDIK:"etik",NONGO:"eko"};
+const PL={NOR:"ak",NORK:"ek",NORI:"ei",NOREN:"en",NOREKIN:"ekin",NORENTZAT:"entzat",NON:"etan",NONDIK:"etatik",NORA:"etara",NONGO:"etako"};
+const IV={NOR:"",NORK:"k",NORI:"ri",NOREN:"ren",NOREKIN:"rekin",NORENTZAT:"rentzat",NON:"tan",NONDIK:"tatik",NORA:"tara",NONGO:"tako"};
+const IC={NOR:"",NORK:"ek",NORI:"i",NOREN:"en",NOREKIN:"ekin",NORENTZAT:"entzat",NON:"etan",NONDIK:"etatik",NORA:"etara",NONGO:"etako"};
+/* t: a = -a amaiera, v = beste bokala, c = kontsonantea. k: p = pertsona/animalia, l = lekua/gauza */
+const ROOTS=[
+{r:"ama",t:"a",k:"p"},{r:"amona",t:"a",k:"p"},{r:"neska",t:"a",k:"p"},{r:"animalia",t:"a",k:"p"},{r:"lagun",t:"c",k:"p"},{r:"gizon",t:"c",k:"p"},{r:"mutil",t:"c",k:"p"},
+{r:"ikasle",t:"v",k:"p"},{r:"irakasle",t:"v",k:"p"},{r:"begirale",t:"v",k:"p"},{r:"ume",t:"v",k:"p"},{r:"itsas txori",t:"v",k:"p"},
+{r:"hondartza",t:"a",k:"l"},{r:"itsasertza",t:"a",k:"l"},{r:"natura",t:"a",k:"l"},{r:"eskola",t:"a",k:"l"},{r:"mapa",t:"a",k:"l"},{r:"jarduera",t:"a",k:"l"},
+{r:"herri",t:"v",k:"l"},{r:"etxe",t:"v",k:"l"},{r:"itsaso",t:"v",k:"l"},{r:"iturri",t:"v",k:"l"},{r:"mendi",t:"v",k:"l"},{r:"kale",t:"v",k:"l"},{r:"liburu",t:"v",k:"l"},{r:"ogitarteko",t:"v",k:"l"},
+{r:"autobus",t:"c",k:"l"},{r:"hondar",t:"c",k:"l"},{r:"maskor",t:"c",k:"l"},{r:"zuhaitz",t:"c",k:"l"},{r:"bizkar",t:"c",k:"l"}];
+const ALLOW={p:["NOR","NORK","NORI","NOREN","NORENTZAT","NOREKIN"],l:["NOR","NORK","NOREN","NORENTZAT","NOREKIN","NON","NONDIK","NORA","NONGO"]};
+function form(R,c,n){
+ const r=R.r,t=R.t;let stem=r,suf;
+ if(n===0)suf=(t==="a"?S0a:t==="v"?S0v:S0c)[c];
+ else if(n===1){stem=t==="a"?r.slice(0,-1):r;suf=PL[c]}
+ else{if(c==="NOR")return r;suf=(t==="c"?IC:IV)[c]}
+ if(t==="c"&&stem.endsWith("r")&&/^[aeiou]/.test(suf))stem+="r";
+ return stem+suf;
+}
+const ZT=[["hondartza","hondartzaz"],["natura","naturaz"],["itsaso","itsasoaz"],["autobus","autobusez"],["herri","herriaz"],["mendi","mendiaz"],["etxe","etxeaz"],["eskola","eskolaz"],["liburu","liburuaz"]];
+const RT=r=>ROOTS.find(x=>x.r===r);
+/* esaldiak: [testua, aipua, erroa, kasua, zenbakia, hitzaGehituta] */
+const SENT=[
+["Ikasleok ___ joan ginen.","hondartza – NORA","hondartza","NORA",0],
+["Begiraleak ___ azalpenak eman zizkigun.","jarduerak – NOREN","jarduera","NOREN",1],
+["___ lagundu genion.","laguna – NORI","lagun","NORI",0],
+["___ ura ekarri genuen.","iturria – NONDIK","iturri","NONDIK",0],
+["___ animalia asko bizi dira.","itsasoa – NON","itsaso","NON",0],
+["___ hitz egin genuen.","hondartza – ZERTAZ","hondartza","ZERTAZ",0],
+["___ jolastu ginen.","lagunak – NOREKIN","lagun","NOREKIN",1],
+["___ itzuli ginen.","herria – NORA","herri","NORA",0],
+["___ maskorrak aurkitu genituen.","hondarra – NON","hondar","NON",0],
+["___ koloreak oso ederrak ziren.","itsas txoriak – NOREN","itsas txori","NOREN",1],
+["Haurrak ___ jolasten dute.","eskola – NON","eskola","NON",0],
+["Goizean ___ atera naiz.","etxea – NONDIK","etxe","NONDIK",0],
+["Arratsaldean ___ joan gara.","mendia – NORA","mendi","NORA",0],
+["___ koloreak ederrak dira.","itsasoa – NOREN","itsaso","NOREN",0],
+["Opari polita eman diot ___.","ama – NORI","ama","NORI",0],
+["Oparia ___ da.","ama – NORENTZAT","ama","NORENTZAT",0],
+["___ hitz egin dut.","irakaslea – NOREKIN","irakasle","NOREKIN",0],
+["Zuhaitz handia ___ dago.","mendia – NON","mendi","NON",0],
+["___ gazte asko daude.","autobusa – NON","autobus","NON",0],
+["Eguerdian ___ jaitsi ginen.","autobusa – NONDIK","autobus","NONDIK",0],
+["___ liburu asko daude.","eskola – NONGO","eskola","NONGO",0],
+["___ ogitartekoak jan genituen.","hondartza – NON","hondartza","NON",0],
+["___ animalia asko bizi dira.","mendiak – NON","mendi","NON",1],
+["___ opariak eman dizkiet.","lagunak – NORI","lagun","NORI",1],
+["___ ura ekarri genuen.","iturriak – NONDIK","iturri","NONDIK",1],
+["Irakasleak ___ hitz egin zuen.","natura – ZERTAZ","natura","ZERTAZ",0],
+["Gure ___ lagun asko daude.","herria – NON","herri","NON",0],
+["___ liburua eman diot.","irakaslea – NORI","irakasle","NORI",0]];
+function sentAnswer(s){
+ const [,,r,c,n]=s;let f;
+ if(c==="ZERTAZ")f=ZT.find(z=>z[0]===r)[1];else f=form(RT(r),c,n);
+ return /^___/.test(s[0])?f[0].toUpperCase()+f.slice(1):f;
+}
+/* testuko hitzak: [esaldia, hitza, kasua] (hitza <> artean) */
+const STORY=[
+["Larunbat <goizean>, gure ikastetxeko ikasleok hondartzara joan ginen.","NON"],
+["Larunbat goizean, gure <ikastetxeko> ikasleok hondartzara joan ginen.","NONGO"],
+["Larunbat goizean, gure ikastetxeko ikasleok <hondartzara> joan ginen.","NORA"],
+["<Irakasleek> autobusez eraman gintuzten kostaldeko herri txiki batera.","NORK"],
+["Irakasleek <autobusez> eraman gintuzten kostaldeko herri txiki batera.","ZERTAZ"],
+["Irakasleek autobusez eraman gintuzten <kostaldeko> herri txiki batera.","NONGO"],
+["Han, <hondartzako> begirale batek eguneko jardueren azalpenak eman zizkigun.","NONGO"],
+["Han, hondartzako begirale <batek> eguneko jardueren azalpenak eman zizkigun.","NORK"],
+["Han, hondartzako begirale batek eguneko <jardueren> azalpenak eman zizkigun.","NOREN"],
+["Gaur, <hondartzan> jolastuko dugu, eta itsasertzean bazkalduko dugu.","NON"],
+["Gaur, hondartzan jolastuko dugu, eta <itsasertzean> bazkalduko dugu.","NON"],
+["Motxilak <bizkarrean> hartuta, taldeka abiatu ginen.","NON"],
+["<Hondartzako> hareatzan, maskor eta harri ugari ikusi genituen.","NONGO"],
+["Hondartzako <hareatzan>, maskor eta harri ugari ikusi genituen.","NON"],
+["Aurrera egin ahala, gure <lagunei> laguntzen genien.","NORI"],
+["Hondarretan ibiltzea batzuetan zaila baitzen. (<Hondarretan>)","NON"],
+["Nire <motxilan>, ura, ogitarteko bat eta eguzkitako krema neramatzan.","NON"],
+["<Mapa> bati esker, hondartzaren inguruko leku interesgarriak aurkitu genituen.","NOR"],
+["Mapa bati esker, <hondartzaren> inguruko leku interesgarriak aurkitu genituen.","NOREN"],
+["Mapa bati esker, hondartzaren <inguruko> leku interesgarriak aurkitu genituen.","NONGO"],
+["<Bazkalorduan>, itsasertzaren ondoan eseri ginen.","NON"],
+["Bazkalorduan, <itsasertzaren> ondoan eseri ginen.","NOREN"],
+["Irakasleak <itsasoko> animaliei buruzko azalpen interesgarriak eman zizkigun.","NONGO"],
+["Irakasleak itsasoko <animaliei> buruzko azalpen interesgarriak eman zizkigun.","NORI"],
+["Itsas <txorien> kantuek hondartza bete zuten.","NOREN"],
+["Itsas txorien <kantuek> hondartza bete zuten.","NORK"],
+["Une hartan <naturaren> edertasunaz oharturik geunden.","NOREN"],
+["Une hartan naturaren <edertasunaz> oharturik geunden.","ZERTAZ"],
+["<Arratsaldean>, herrira itzuli aurretik, talde bakoitzak bere esperientziari buruz hitz egin zuen.","NON"],
+["Arratsaldean, <herrira> itzuli aurretik, talde bakoitzak bere esperientziari buruz hitz egin zuen.","NORA"],
+["Arratsaldean, herrira itzuli aurretik, talde <bakoitzak> bere esperientziari buruz hitz egin zuen.","NORK"],
+["Arratsaldean, herrira itzuli aurretik, talde bakoitzak bere <esperientziari> buruz hitz egin zuen.","NORI"],
+["Denok ados geunden: <hondartzan> ikasitakoa ez genuen inoiz ahaztuko.","NON"]];
+/* ===== TREBEAK ===== */
+const $=id=>document.getElementById(id),app=$("app");
+const sh=a=>a.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const norm=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim();
+let score=0,i=0,N=10,gen=null,lock=false,seen=new Set(),best=0;
+try{best=+localStorage.getItem("dkbest")||0}catch(e){}
+const cap=s=>s[0].toUpperCase()+s.slice(1);
+function randItem(){
+ const R=pick(ROOTS),c=pick(ALLOW[R.k]),n=pick([0,1,2]);
+ return {R,c,n,f:form(R,c,n)};
+}
+function head(){return `<div class="top"><button class="back" onclick="home()">← Hasiera</button><span>⭐ ${score}</span></div><div class="bar"><i style="width:${i/N*100}%"></i></div>`}
+function end(){
+ if(score>best){best=score;try{localStorage.setItem("dkbest",best)}catch(e){}}
+ const m=score>=80?"Bikain! Maisua zara! 🏆":score>=50?"Oso ondo! Errepasatu pixka bat 👍":"Saiatu berriro, lortuko duzu! 💪";
+ app.innerHTML=`<div class="card"><div class="big-n">${score}</div><p class="q" style="text-align:center">${m}</p><button class="big" onclick="home()">Hasierara</button></div>`;
+}
+function start(g){gen=g;score=0;i=0;seen=new Set();next()}
+function next(){
+ if(i>=N)return end();
+ let q,t=0;do{q=gen();t++}while(seen.has(q.key)&&t<60);
+ seen.add(q.key);lock=false;
+ const body=q.typed
+  ?`<input id="ans" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="big" id="ck">Egiaztatu</button>`
+  :`<div class="${q.opts.some(o=>o.length>14)?"":"grid2"}">${q.opts.map(o=>`<button data-o="${o.replace(/"/g,"&quot;")}">${o}</button>`).join("")}</div>`;
+ app.innerHTML=head()+`<div class="card"><p class="q">${q.prompt}</p>${q.sub?`<p class="note">${q.sub}</p>`:""}${body}<p class="fb" id="fb"></p><p class="note" id="nt"></p></div>`;
+ const fin=(ok)=>{lock=true;if(ok){score+=10;$("fb").textContent="Zuzena! +10 🎉"}$("nt").innerHTML=q.note||"";setTimeout(()=>{i++;next()},q.typed?3000:2400)};
+ if(q.typed){
+  let tries=0;const chk=()=>{if(lock)return;
+   if(norm($("ans").value)===norm(q.ans))fin(true);
+   else{tries++;if(tries>=2){$("fb").textContent="Erantzuna: "+q.ans;fin(false)}else $("fb").textContent="Ez da zuzena. Saiatu berriro!"}};
+  $("ck").onclick=chk;$("ans").onkeydown=e=>{if(e.key==="Enter")chk()};$("ans").focus();
+ }else app.querySelectorAll("button[data-o]").forEach(b=>b.onclick=()=>{
+  if(lock)return;const ok=b.dataset.o===q.ans;
+  b.classList.add(ok?"ok":"bad");
+  if(!ok){app.querySelectorAll("button[data-o]").forEach(c=>{if(c.dataset.o===q.ans)c.classList.add("ok")});$("fb").textContent="Ez da zuzena."}
+  fin(ok);
+ });
+}
+function opts4(right,pool){return sh([right,...sh([...new Set(pool)].filter(x=>x!==right)).slice(0,3)])}
+/* 1. Taulako atzizkiak */
+function gTable(){
+ const c=pick(CASES),n=pick(c==="NOR"?[0,1]:[0,1,2]),suf=TAB[c][n];
+ if(Math.random()<.5){
+  const pool=CASES.filter(x=>x!==c&&TAB[x][n]!==suf).map(x=>TAB[x][n]);
+  return {key:"f"+c+n,prompt:`Zein da <b>${LABEL[c]}</b> kasuaren atzizkia ${NUML[n]}?`,opts:opts4(suf,pool),ans:suf,note:`${LABEL[c]} → ${TAB[c].join("  |  ")}`};
+ }
+ const pool=CASES.filter(x=>x!==c&&TAB[x][n]!==suf).map(x=>LABEL[x]);
+ return {key:"r"+c+n,prompt:`<b>${suf}</b> atzizkia ${NUML[n]} zein kasuri dagokio?`,opts:opts4(LABEL[c],pool),ans:LABEL[c],note:`${LABEL[c]} → ${TAB[c].join("  |  ")}`};
+}
+/* 2. Osatu hitza */
+function distract(R,c,n,f){
+ const out=[];ALLOW[R.k].forEach(c2=>[n,0,1,2].forEach(n2=>{const g=form(R,c2,n2);if(g!==f&&(c2!==c||n2!==n))out.push([g,(c2===c?0:2)+(n2===n?0:1)])}));
+ return sh(out).sort((a,b)=>a[1]-b[1]).map(x=>x[0]).filter((x,k,a)=>a.indexOf(x)===k).slice(0,6);
+}
+function gForm(){
+ const {R,c,n,f}=randItem();
+ const ds=sh(distract(R,c,n,f)).slice(0,3);
+ return {key:R.r+c+n,prompt:`Jarri <b>${R.r}</b> hitza <b>${LABEL[c]}</b> kasuan`,sub:`(${NUMN[n]})`,opts:sh([f,...ds]),ans:f,note:`${R.r} + ${TAB[c][n].toLowerCase()} → <b>${f}</b>`};
+}
+/* 3. Idatzi hitza */
+function gType(){
+ const {R,c,n,f}=randItem();
+ return {key:R.r+c+n,typed:1,prompt:`Idatzi <b>${R.r}</b> hitza <b>${LABEL[c]}</b> kasuan`,sub:`(${NUMN[n]})`,ans:f,note:`${R.r} + ${TAB[c][n].toLowerCase()} → <b>${f}</b>`};
+}
+/* 4. Zein kasu da? */
+function unambiguous(R,c,n,f,byNum){
+ for(const c2 of ALLOW[R.k])for(const n2 of [0,1,2]){if(form(R,c2,n2)!==f)continue;if(byNum?n2!==n:c2!==c)return false}
+ return true;
+}
+function gCase(){
+ let it,t=0;do{it=randItem();t++}while(!unambiguous(it.R,it.c,it.n,it.f,false)&&t<80);
+ const {R,c,n,f}=it;
+ const pool=ALLOW[R.k].filter(x=>x!==c).map(x=>LABEL[x]);
+ return {key:"c"+f,prompt:`Zein kasutan dago <b>${f}</b>?`,opts:opts4(LABEL[c],pool.concat(["NORA","NON"].map(x=>LABEL[x]))),ans:LABEL[c],note:`${f} = ${R.r} + ${TAB[c][n].toLowerCase()} (${LABEL[c]}, ${NUMN[n]})`};
+}
+function gNum(){
+ let it,t=0;do{it=randItem();t++}while(!unambiguous(it.R,it.c,it.n,it.f,true)&&t<80);
+ const {R,c,n,f}=it;
+ return {key:"n"+f,prompt:`<b>${f}</b> hitza singularra, plurala ala mugagabea da?`,opts:NUMN.slice(),ans:NUMN[n],note:`${f} = ${R.r} + ${TAB[c][n].toLowerCase()} (${LABEL[c]}, ${NUMN[n]})`};
+}
+/* 5. Erroa, atzizkia, kasua */
+function gAnalyse(){
+ let it,t=0;do{it=randItem();t++}while(!unambiguous(it.R,it.c,it.n,it.f,false)&&t<80);
+ const {R,c,n,f}=it,kind=pick(["erroa","atzizkia","kasua"]);
+ const note=`${f} → erroa: <b>${R.r}</b> · atzizkia: <b>${TAB[c][n].toLowerCase()}</b> · kasua: <b>${LABEL[c]}</b>`;
+ if(kind==="erroa"){
+  const pool=ROOTS.filter(x=>x.r!==R.r&&x.t===R.t).map(x=>x.r).concat(ROOTS.map(x=>x.r));
+  return {key:"e"+f,prompt:`<b>${f}</b>: zein da hitzaren erroa?`,opts:opts4(R.r,pool),ans:R.r,note};
+ }
+ if(kind==="atzizkia"){
+  if(n===0&&R.t==="c")return gAnalyse();
+  const suf=TAB[c][n].toLowerCase();if(suf==="-")return gAnalyse();
+  const pool=CASES.filter(x=>x!==c).map(x=>TAB[x][n].toLowerCase()).filter(x=>x!==suf&&x!=="-");
+  return {key:"a"+f,prompt:`<b>${f}</b>: zein da atzizkia?`,opts:opts4(suf,pool),ans:suf,note};
+ }
+ const pool=ALLOW[R.k].filter(x=>x!==c).map(x=>LABEL[x]).concat(["NORA","NON","NORI"].map(x=>LABEL[x]));
+ return {key:"k"+f,prompt:`<b>${f}</b>: zein da kasua?`,opts:opts4(LABEL[c],pool),ans:LABEL[c],note};
+}
+/* 6. Osatu esaldiak */
+function gSent(){
+ const s=pick(SENT),ans=sentAnswer(s),[,hint,r,c,n]=s,R=RT(r);
+ const toCap=/^___/.test(s[0]);
+ let ds=distract(R,c==="ZERTAZ"?"NON":c,n,ans.toLowerCase()).filter(x=>x!==ans.toLowerCase());
+ if(c==="ZERTAZ")ds=sh(ds).slice(0,3);else ds=sh(ds).slice(0,3);
+ const fix=x=>toCap?cap(x):x;
+ return {key:"s"+s[0]+hint,prompt:s[0].replace("___","<u>______</u>"),sub:`(${hint})`,opts:sh([ans,...ds.map(fix)]),ans,note:`${hint} → <b>${ans}</b>`};
+}
+/* 7. Testuko hitzak */
+function gStory(){
+ const [txt,c]=pick(STORY),m=txt.match(/<([^>]+)>/),w=m[1];
+ const html=txt.replace(/<([^>]+)>/,"<u>$1</u>");
+ const pool=CASES.filter(x=>x!==c).map(x=>LABEL[x]).concat(c==="ZERTAZ"?[]:[LABEL.ZERTAZ]);
+ return {key:"w"+txt,prompt:`Zein deklinabide-kasutan dago azpimarratutako hitza?`,sub:html,opts:opts4(LABEL[c],pool),ans:LABEL[c],note:`<b>${w}</b> → ${LABEL[c]}`};
+}
+/* ===== TAULA ===== */
+function showTable(sel){
+ const R=RT(sel||"etxe");
+ const rows=CASES.map(c=>{
+  const ok=ALLOW[R.k].includes(c);
+  return `<tr><td>${LABEL[c]}</td>${[0,1,2].map(n=>`<td>${ok?form(R,c,n):"–"}</td>`).join("")}</tr>`;
+ }).join("");
+ const abs=CASES.map(c=>`<tr><td>${LABEL[c]}</td>${TAB[c].map(s=>`<td>${s}</td>`).join("")}</tr>`).join("");
+ app.innerHTML=`<div class="top"><button class="back" onclick="home()">← Hasiera</button><span></span></div>
+ <div class="card"><p class="q">Fitxako taula</p><div class="sc"><table><tr><th></th><th>Singularra</th><th>Plurala</th><th>Mugagabea</th></tr>${abs}</table></div></div>
+ <div class="card"><p class="q">Adibideak</p><p>Aukeratu hitz bat eta ikusi bere formak:</p>
+ <select id="sr">${ROOTS.map(x=>`<option${x.r===R.r?" selected":""}>${x.r}</option>`).join("")}</select>
+ <div class="sc" style="margin-top:10px"><table><tr><th></th><th>Singularra</th><th>Plurala</th><th>Mugagabea</th></tr>${rows}</table></div>
+ <p class="note">“–” = hitz honekin kasu hori ez da ohikoa (pertsonekin ez dira lekuko kasuak erabiltzen). ZERTAZ taulan ez dago, baina ariketetan agertzen da: hondartza → hondartzaz.</p></div>`;
+ $("sr").onchange=e=>showTable(e.target.value);
+}
+function home(){
+ app.innerHTML=`<h1>Deklinabideak 🧩</h1><p>Ikasi euskarazko deklinabide-kasuak eta atzizkiak.</p>
+ <div class="card"><button class="alt" onclick="showTable()">📋 Taula eta adibideak</button></div>
+ <div class="card"><p class="q">Jolasak</p>
+ <button class="big" onclick="start(gTable)">🔤 Zein atzizkia da?</button>
+ <button class="big" onclick="start(gForm)">🧱 Osatu hitza</button>
+ <button class="big" onclick="start(gType)">⌨️ Idatzi hitza</button>
+ <button class="big" onclick="start(gCase)">🔎 Zein kasu da?</button>
+ <button class="big" onclick="start(gNum)">🔢 Singularra, plurala edo mugagabea?</button>
+ <button class="big" onclick="start(gAnalyse)">🧪 Erroa, atzizkia, kasua</button>
+ <button class="big" onclick="start(gSent)">✏️ Osatu esaldiak</button>
+ <button class="big" onclick="start(gStory)">📖 Testuko hitzak</button></div>
+ <p>Errekorra: ${best} puntu</p>
+ <p class="note">Hitz eta galdera berriak ausaz sortzen dira partida bakoitzean.</p>`;
+}
+home();
+</script></body></html>
