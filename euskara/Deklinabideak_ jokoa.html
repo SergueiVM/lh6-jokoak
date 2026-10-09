@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="eu"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Deklinabideak: jokoa</title>
 <style>
 :root{--bg:#fff4e0;--card:#fff;--ink:#2b2350;--pri:#ff6b4a;--ok:#1f9d63;--bad:#d6334f;--sec:#5b4bdb;--line:#e8d9bd;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -36,7 +34,13 @@ th{background:var(--line)}
 td:first-child{font-weight:800;text-align:left}
 .sc{overflow-x:auto}
 select,input{font:inherit;padding:10px;border:2px solid var(--line);border-radius:12px;background:var(--card);color:inherit;width:100%}
-</style></head><body><main><div id="app"></div></main>
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.chip{width:auto;margin:0;text-align:center;padding:10px 14px}
+.chip.used{opacity:.3}
+.ansarea{min-height:60px;border:2px dashed var(--line);border-radius:14px;padding:8px;margin:8px 0}
+.tag{display:inline-block;font-size:13px;font-weight:700;background:var(--line);border-radius:10px;padding:2px 8px;margin-bottom:6px}
+.mark{background:var(--pri);color:#fff;border-radius:8px;padding:0 6px}
+</style><main><div id="app"></div></main>
 <script>
 /* ===== DATUAK ===== */
 const CASES=["NOR","NORK","NORI","NOREN","NORENTZAT","NOREKIN","NON","NONDIK","NORA","NONGO"];
@@ -144,7 +148,7 @@ const STORY=[
 const $=id=>document.getElementById(id),app=$("app");
 const sh=a=>a.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
 const pick=a=>a[Math.floor(Math.random()*a.length)];
-const norm=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim();
+const norm=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[.,;:!?]/g,"").replace(/\s+/g," ").trim();
 let score=0,i=0,N=10,gen=null,lock=false,seen=new Set(),best=0;
 try{best=+localStorage.getItem("dkbest")||0}catch(e){}
 const cap=s=>s[0].toUpperCase()+s.slice(1);
@@ -163,14 +167,29 @@ function next(){
  if(i>=N)return end();
  let q,t=0;do{q=gen();t++}while(seen.has(q.key)&&t<60);
  seen.add(q.key);lock=false;
- const body=q.typed
+ const body=q.order
+  ?`<div class="ansarea chips" id="aa"></div><div class="chips" id="bk"></div><button class="big" id="ck">Egiaztatu</button><button class="alt" id="rs">Hasieratik</button>`
+  :q.typed
   ?`<input id="ans" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="big" id="ck">Egiaztatu</button>`
   :`<div class="${q.opts.some(o=>o.length>14)?"":"grid2"}">${q.opts.map(o=>`<button data-o="${o.replace(/"/g,"&quot;")}">${o}</button>`).join("")}</div>`;
  app.innerHTML=head()+`<div class="card"><p class="q">${q.prompt}</p>${q.sub?`<p class="note">${q.sub}</p>`:""}${body}<p class="fb" id="fb"></p><p class="note" id="nt"></p></div>`;
- const fin=(ok)=>{lock=true;if(ok){score+=10;$("fb").textContent="Zuzena! +10 🎉"}$("nt").innerHTML=q.note||"";setTimeout(()=>{i++;next()},q.typed?3000:2400)};
- if(q.typed){
+ const fin=(ok)=>{lock=true;if(ok){score+=10;$("fb").textContent="Zuzena! +10 🎉"}$("nt").innerHTML=q.note||"";setTimeout(()=>{i++;next()},(q.typed||q.order)?3500:2400)};
+ if(q.order){
+  let picked=[],tries=0;
+  const draw=()=>{
+   $("aa").innerHTML=picked.map((k,j)=>`<button class="chip alt" data-p="${j}">${q.order[k]}</button>`).join("");
+   $("bk").innerHTML=q.order.map((w,k)=>`<button class="chip${picked.includes(k)?" used":""}" data-k="${k}">${w}</button>`).join("");
+   $("aa").querySelectorAll("button").forEach(b=>b.onclick=()=>{if(lock)return;picked.splice(+b.dataset.p,1);draw()});
+   $("bk").querySelectorAll("button").forEach(b=>b.onclick=()=>{if(lock)return;const k=+b.dataset.k;if(!picked.includes(k)){picked.push(k);draw()}});
+  };
+  draw();
+  $("rs").onclick=()=>{if(lock)return;picked=[];draw()};
+  $("ck").onclick=()=>{if(lock)return;
+   if(picked.map(k=>q.order[k]).join(" ")===q.ans)fin(true);
+   else{tries++;if(tries>=2){$("fb").textContent="Fitxako esaldia: "+q.ans;fin(false)}else{$("fb").textContent="Ez da zuzena. Saiatu berriro!";picked=[];draw()}}};
+ }else if(q.typed){
   let tries=0;const chk=()=>{if(lock)return;
-   if(norm($("ans").value)===norm(q.ans))fin(true);
+   if([q.ans,...(q.alts||[])].some(a=>norm(a)===norm($("ans").value)))fin(true);
    else{tries++;if(tries>=2){$("fb").textContent="Erantzuna: "+q.ans;fin(false)}else $("fb").textContent="Ez da zuzena. Saiatu berriro!"}};
   $("ck").onclick=chk;$("ans").onkeydown=e=>{if(e.key==="Enter")chk()};$("ans").focus();
  }else app.querySelectorAll("button[data-o]").forEach(b=>b.onclick=()=>{
@@ -186,7 +205,7 @@ function gTable(){
  const c=pick(CASES),n=pick(c==="NOR"?[0,1]:[0,1,2]),suf=TAB[c][n];
  if(Math.random()<.5){
   const pool=CASES.filter(x=>x!==c&&TAB[x][n]!==suf).map(x=>TAB[x][n]);
-  return {key:"f"+c+n,prompt:`Zein da <b>${LABEL[c]}</b> kasuaren atzizkia ${NUML[n]}?`,opts:opts4(suf,pool),ans:suf,note:`${LABEL[c]} → ${TAB[c].join("  |  ")}`};
+  return {key:"f"+c+n,prompt:`Zein atzizki da <b>${LABEL[c]}</b> kasuarena ${NUML[n]}?`,opts:opts4(suf,pool),ans:suf,note:`${LABEL[c]} → ${TAB[c].join("  |  ")}`};
  }
  const pool=CASES.filter(x=>x!==c&&TAB[x][n]!==suf).map(x=>LABEL[x]);
  return {key:"r"+c+n,prompt:`<b>${suf}</b> atzizkia ${NUML[n]} zein kasuri dagokio?`,opts:opts4(LABEL[c],pool),ans:LABEL[c],note:`${LABEL[c]} → ${TAB[c].join("  |  ")}`};
@@ -235,7 +254,7 @@ function gAnalyse(){
   if(n===0&&R.t==="c")return gAnalyse();
   const suf=TAB[c][n].toLowerCase();if(suf==="-")return gAnalyse();
   const pool=CASES.filter(x=>x!==c).map(x=>TAB[x][n].toLowerCase()).filter(x=>x!==suf&&x!=="-");
-  return {key:"a"+f,prompt:`<b>${f}</b>: zein da atzizkia?`,opts:opts4(suf,pool),ans:suf,note};
+  return {key:"a"+f,prompt:`<b>${f}</b>: zein atzizki da?`,opts:opts4(suf,pool),ans:suf,note};
  }
  const pool=ALLOW[R.k].filter(x=>x!==c).map(x=>LABEL[x]).concat(["NORA","NON","NORI"].map(x=>LABEL[x]));
  return {key:"k"+f,prompt:`<b>${f}</b>: zein da kasua?`,opts:opts4(LABEL[c],pool),ans:LABEL[c],note};
@@ -255,6 +274,134 @@ function gStory(){
  const html=txt.replace(/<([^>]+)>/,"<u>$1</u>");
  const pool=CASES.filter(x=>x!==c).map(x=>LABEL[x]).concat(c==="ZERTAZ"?[]:[LABEL.ZERTAZ]);
  return {key:"w"+txt,prompt:`Zein deklinabide-kasutan dago azpimarratutako hitza?`,sub:html,opts:opts4(LABEL[c],pool),ans:LABEL[c],note:`<b>${w}</b> → ${LABEL[c]}`};
+}
+/* ===== KLASEKO ARIKETAK (fitxetako esaldiak) ===== */
+/* E(ariketa, esaldia ___ hutsunearekin, parentesi arteko hitza, erantzuna, okerrak, aukerak) */
+const CX=[];
+function E(ex,t,w,a,ds,o){CX.push(Object.assign({ex,t,w,a,ds},o||{}))}
+/* 1. ariketa – Deklinatu */
+E(1,"___ ariketa egin du.","ikasleak","ikasleek",["ikasleak","ikasleei","ikasleen"]);
+E(1,"Atzo ___ etorri zitzaigun.","lagun bat","lagun bat",["lagun batek","lagun bati","lagun batekin"]);
+E(1,"Liburu hau ___ da.","neska","neskarena",["neskari","neskak","neskarekin"],{alts:["neskarentzat"]});
+E(1,"Bihar ___ joango gara.","mendi","mendira",["mendian","menditik","mendiak"]);
+E(1,"___ azalpen bat eman digu.","irakaslea","irakasleak",["irakasleari","irakaslea","irakaslearen"]);
+E(1,"Txakurra ___ dago.","etxea","etxean",["etxera","etxetik","etxeak"]);
+E(1,"___ opari bat ekarri dute.","gurasoak","gurasoek",["gurasoak","gurasoei","gurasoen"]);
+E(1,"___ kaleak oso jendetsuak dira.","Bilbo","Bilboko",["Bilbon","Bilbora","Bilbotik"]);
+E(1,"___ etorri gara.","parkea","parketik",["parkera","parkean","parkeko"]);
+E(1,"Opari hau ___ da.","amona","amonarentzat",["amonari","amonak","amonaren"],{alts:["amonarena"]});
+E(1,"___ laguntza eskatu dute.","ikasle batzuk","ikasle batzuek",["ikasle batzuk","ikasle batzuei","ikasle batzuen"]);
+E(1,"___ mezua bidali diot.","lagunak","lagunei",["lagunak","lagunek","lagunen"],{alts:["lagunari"]});
+E(1,"___ etorri da familia bat.","herri bat","herri batetik",["herri batera","herri batean","herri batek"]);
+E(1,"___ jolasten ari dira.","umeak","umeak",["umeek","umeei","umeen"]);
+E(1,"___ paisaia zoragarria da.","mendia","mendiko",["mendian","mendira","mendiak"]);
+E(1,"___ mahai gainean daude.","liburuak","liburuak",["liburuek","liburuei","liburuen"]);
+E(1,"Asteburuan ___ joango gara.","hondartza","hondartzara",["hondartzan","hondartzatik","hondartzako"]);
+E(1,"___ haurrak jolasten ari dira.","eskolako patioa","eskolako patioan",["eskolako patiora","eskolako patioak","eskolako patiotik"]);
+E(1,"___ opari bana eman diet.","lagun batzuk","lagun batzuei",["lagun batzuek","lagun batzuk","lagun batzuen"]);
+/* 4. ariketa – Aukeratu forma zuzena (fitxako aukerak) */
+E(4,"___ joan naiz goizean.","","Eskolara",["Eskola","Eskolan"]);
+E(4,"Liburua ___ dago.","","mahaian",["mahaia","mahaira"]);
+E(4,"___ egin du lan guztia.","","Anek",["Aneren","Aneri"]);
+E(4,"Opari hau ___ da.","","Jonentzat",["Jon","Joni"]);
+E(4,"Hau ___ motxila da.","","ikaslearen",["ikaslea","ikasleari"]);
+E(4,"___ eman diot liburua.","","Aneri",["Ane","Anek"]);
+E(4,"___ ikasle asko daude.","","Gelan",["Gelara","Gelatik"]);
+E(4,"___ kaleak oso politak dira.","","Donostiako",["Donostian","Donostiara"]);
+E(4,"___ batzuek lagundu digute.","","Lagun",["Lagunek","Lagun batzuek"]);
+/* 5. ariketa – Kasu guztiak nahastuta */
+E(5,"___ irakasleari galdera bat egin dio.","neska","neskak",["neskari","neskaren","neskarekin"]);
+E(5,"___ ikasleei azalpena eman die.","irakaslea","irakasleak",["irakasleari","irakaslea","irakaslearen"]);
+E(5,"Atzo ___ etorri ginen.","herri bat","herri batetik",["herri batera","herri batean","herri batek"]);
+E(5,"___ parkera joan dira.","mutilak","mutilak",["mutilek","mutilei","mutilen"]);
+E(5,"Hau ___ koadernoa da.","ikasleak","ikasleen",["ikasleak","ikasleek","ikasleei"]);
+E(5,"Opari batzuk ___ erosi ditugu.","lagun batzuk","lagun batzuentzat",["lagun batzuek","lagun batzuei","lagun batzuk"]);
+E(5,"___ ez dago inor.","gela","gelan",["gelara","gelatik","gelak"]);
+E(5,"___ ikusten dira urrunean.","mendi batzuk","mendi batzuk",["mendi batzuek","mendi batzuei","mendi batzuen"]);
+E(5,"___ deitu diegu.","gurasoak","gurasoei",["gurasoak","gurasoek","gurasoen"]);
+E(5,"___ deitu digute.","gurasoek","gurasoek",["gurasoak","gurasoei","gurasoen"]);
+E(5,"___ atera naiz goizean.","etxea","etxetik",["etxera","etxean","etxeak"]);
+E(5,"___ ateak zabalik daude.","etxeak","etxeetako",["etxeko","etxeetan","etxeek"]);
+E(5,"___ eman diot oparia.","ume bat","ume bati",["ume batek","ume batera","ume batekin"]);
+E(5,"___ eman dizkiet opariak.","umeak","umeei",["umeak","umeek","umeen"]);
+E(5,"___ etxeak oso zaharrak dira.","Bilbo","Bilboko",["Bilbon","Bilbora","Bilbotik"]);
+E(5,"___ joango naiz arratsaldean.","liburutegia","liburutegira",["liburutegian","liburutegitik","liburutegiko"]);
+E(5,"___ atera naiz orain.","liburutegia","liburutegitik",["liburutegira","liburutegian","liburutegiak"]);
+E(5,"___ liburu asko daude.","liburutegia","liburutegian",["liburutegira","liburutegitik","liburutegiak"]);
+const fillT=(x,v)=>{const s=x.t.replace("___",v);return /^___/.test(x.t)?cap(s):s};
+const optT=(x,v)=>/^___/.test(x.t)?cap(v):v;
+const tagT=x=>`<span class="tag">${x.ex}. ariketa</span>`;
+const subT=x=>(x.w?`(${x.w})`:"")+(x.w?" ":"")+tagT(x);
+const blank=t=>t.replace("___","<u>______</u>");
+/* 2. ariketa – Zein kasu da? [esaldia, azpimarratutako hitza, kasua] */
+const CK=[
+["Anek txakurra paseatu du.","Anek","NORK"],["Anek txakurra paseatu du.","txakurra","NOR"],
+["Liburua mahaian dago.","mahaian","NON"],["Liburua mahaian dago.","Liburua","NOR"],
+["Ikasleei azalpena eman die irakasleak.","Ikasleei","NORI"],["Ikasleei azalpena eman die irakasleak.","irakasleak","NORK"],
+["Hau Mirenena da.","Mirenena","NOREN"],["Bihar mendira joango gara.","mendira","NORA"],
+["Herritik autobusez etorri gara.","Herritik","NONDIK"],["Bilboko museoa oso interesgarria da.","Bilboko","NONGO"],
+["Opari hau zuretzat da.","zuretzat","NORENTZAT"],["Txakurra lorategian dago.","lorategian","NON"],
+["Gurasoek afaria prestatu dute.","Gurasoek","NORK"],["Lagunen etxea handia da.","Lagunen","NOREN"],
+["Parkean ume asko daude.","Parkean","NON"]];
+/* 3. ariketa – Singularra, plurala edo mugagabea? [hitza, zenbakia(0/1/2), kasua, erroa+atzizkia] */
+const CN=[
+["etxean",0,"NON","etxe + -an"],["etxeetan",1,"NON","etxe + -etan"],["etxe batean",2,"NON","etxe bat + -ean"],
+["lagunari",0,"NORI","lagun + -ari"],["lagunei",1,"NORI","lagun + -ei"],["lagun bati",2,"NORI","lagun bat + -i"],
+["menditik",0,"NONDIK","mendi + -tik"],["mendietatik",1,"NONDIK","mendi + -etatik"],["mendi batetik",2,"NONDIK","mendi bat + -etik"],
+["ikaslearentzat",0,"NORENTZAT","ikasle + -arentzat"],["ikasleentzat",1,"NORENTZAT","ikasle + -entzat"],["ikasle batentzat",2,"NORENTZAT","ikasle bat + -entzat"]];
+/* 6. ariketa – Zuzendu akatsa [hutsunea duen esaldia, oker, zuzena, beste okerrak] */
+const CF=[
+["___ liburua eman diot.","Anekari","Aneri",["Anek","Aneren"]],
+["___ ume asko daude.","Parkera","Parkean",["Parkea","Parketik"]],
+["Nire ___ etxea oso handia da.","lagunentzat","lagunen",["lagunek","lagunei"]],
+["___ etorri gara.","Mendian","Menditik",["Mendira","Mendiko"]],
+["___ kaleak oso politak dira.","Bilbon","Bilboko",["Bilbora","Bilbotik"]],
+["___ joango gara arratsaldean.","Eskolatik","Eskolara",["Eskolan","Eskolako"]]];
+const cf=(t,v)=>t.replace("___",v);
+/* ===== Jolasak ===== */
+/* A. Osatu esaldia (aukerak) */
+function gcFill(){
+ const x=pick(CX),ans=optT(x,x.a);
+ return {key:"cf"+x.ex+x.t+x.a,prompt:blank(x.t),sub:subT(x),opts:sh([ans,...x.ds.map(d=>optT(x,d))]).slice(0,4),ans,note:`<b>${fillT(x,x.a)}</b>`};
+}
+/* B. Idatzi falta dena */
+function gcType(){
+ const x=pick(CX.filter(y=>y.w));
+ return {key:"ct"+x.ex+x.t+x.a,typed:1,prompt:blank(x.t),sub:subT(x)+"<br>Idatzi hitza deklinatuta.",ans:optT(x,x.a),alts:(x.alts||[]).map(a=>optT(x,a)),note:`<b>${fillT(x,x.a)}</b>`};
+}
+/* C. Aukeratu esaldi zuzena (esaldi osoa) */
+function gcSent(){
+ const x=pick(CX);
+ const ans=fillT(x,x.a);
+ return {key:"cs"+x.ex+x.t+x.a,prompt:"Zein da esaldi zuzena?",sub:tagT(x),opts:sh([ans,...x.ds.map(d=>fillT(x,d))]).slice(0,4),ans,note:`<b>${ans}</b>`};
+}
+/* D. Ordenatu esaldia (fitxako ordena) */
+function gcOrder(){
+ const pool=CX.map(x=>({ex:x.ex,s:fillT(x,x.a)})).concat(CF.map(f=>({ex:6,s:cf(f[0],f[2])})));
+ const p=pick(pool),words=p.s.split(" ");
+ let o,t=0;do{o=sh(words);t++}while(o.join(" ")===p.s&&t<20);
+ return {key:"co"+p.s,order:o,prompt:"Ordenatu hitzak esaldia osatzeko",sub:tagT(p)+" Jarri fitxako ordenan.",ans:p.s,note:`<b>${p.s}</b>`};
+}
+/* E. Zein kasu da? (2. ariketa) */
+function gcCase(){
+ const [s,w,c]=pick(CK);
+ const html=s.replace(w,`<span class="mark">${w}</span>`);
+ const pool=CASES.filter(x=>x!==c).map(x=>LABEL[x]);
+ return {key:"ck"+s+w,prompt:"Zein kasutan dago nabarmendutako hitza?",sub:`<span class="tag">2. ariketa</span><br><span style="font-size:19px">${html}</span>`,opts:opts4(LABEL[c],pool),ans:LABEL[c],note:`<b>${w}</b> → ${LABEL[c]}`};
+}
+/* F. Singularra, plurala edo mugagabea? (3. ariketa) */
+function gcNum(){
+ const [w,n,c,r]=pick(CN);
+ if(Math.random()<.5)return {key:"cn"+w,prompt:`<b>${w}</b> singularrean, pluralean edo mugagabean dago?`,sub:'<span class="tag">3. ariketa</span>',opts:NUML.slice(),ans:NUML[n],note:`${w} = ${r} (${LABEL[c]}, ${NUMN[n]})`};
+ const pool=CASES.filter(x=>x!==c).map(x=>LABEL[x]);
+ return {key:"cnk"+w,prompt:`<b>${w}</b>: zein kasutan dago?`,sub:'<span class="tag">3. ariketa</span>',opts:opts4(LABEL[c],pool),ans:LABEL[c],note:`${w} = ${r} (${LABEL[c]}, ${NUMN[n]})`};
+}
+/* G. Zuzendu akatsa (6. ariketa) */
+function gcFix(){
+ const [t,bad,good,ds]=pick(CF),wrong=cf(t,bad),right=cf(t,good);
+ const sub='<span class="tag">6. ariketa</span><br>Esaldi honetan deklinabide-akats bat dago:<br><b>'+wrong+'</b>';
+ if(Math.random()<.5)return {key:"cz"+t,typed:1,prompt:"Zuzendu esaldia",sub:sub+"<br>Idatzi esaldi zuzena.",ans:right,note:`<b>${right}</b>`};
+ return {key:"czm"+t,prompt:"Zein da esaldi zuzena?",sub:sub,opts:sh([right,...ds.map(d=>cf(t,d))]),ans:right,note:`<b>${right}</b>`};
 }
 /* ===== TAULA ===== */
 function showTable(sel){
@@ -276,7 +423,7 @@ function home(){
  app.innerHTML=`<h1>Deklinabideak 🧩</h1><p>Ikasi euskarazko deklinabide-kasuak eta atzizkiak.</p>
  <div class="card"><button class="alt" onclick="showTable()">📋 Taula eta adibideak</button></div>
  <div class="card"><p class="q">Jolasak</p>
- <button class="big" onclick="start(gTable)">🔤 Zein atzizkia da?</button>
+ <button class="big" onclick="start(gTable)">🔤 Zein atzizki da?</button>
  <button class="big" onclick="start(gForm)">🧱 Osatu hitza</button>
  <button class="big" onclick="start(gType)">⌨️ Idatzi hitza</button>
  <button class="big" onclick="start(gCase)">🔎 Zein kasu da?</button>
@@ -284,8 +431,19 @@ function home(){
  <button class="big" onclick="start(gAnalyse)">🧪 Erroa, atzizkia, kasua</button>
  <button class="big" onclick="start(gSent)">✏️ Osatu esaldiak</button>
  <button class="big" onclick="start(gStory)">📖 Testuko hitzak</button></div>
+ <div class="card"><p class="q">Klaseko ariketak</p>
+ <p class="note">Fitxetako esaldiak, hitzez hitz. Ikasi esaldiak bere horretan.</p>
+ <button class="big" onclick="start(gcFill)">✏️ Osatu esaldia</button>
+ <button class="big" onclick="start(gcType)">⌨️ Idatzi falta dena</button>
+ <button class="big" onclick="start(gcSent)">🎯 Aukeratu esaldi zuzena</button>
+ <button class="big" onclick="start(gcOrder)">🧩 Ordenatu esaldia</button>
+ <button class="big" onclick="start(gcCase)">🔎 Zein kasu da? (2. ariketa)</button>
+ <button class="big" onclick="start(gcNum)">🔢 Singularra, plurala, mugagabea (3. ariketa)</button>
+ <button class="big" onclick="start(gcFix)">🛠️ Zuzendu akatsa (6. ariketa)</button></div>
  <p>Errekorra: ${best} puntu</p>
  <p class="note">Hitz eta galdera berriak ausaz sortzen dira partida bakoitzean.</p>`;
 }
 home();
-</script></body></html>
+</script>
+
+</body></html>
