@@ -18,6 +18,10 @@ button:focus-visible{outline:3px solid var(--sec)}
 button.big{background:var(--pri);color:#fff;border-color:var(--pri);text-align:center;font-size:19px}
 button.ok{background:var(--ok);color:#fff;border-color:var(--ok)}
 button.bad{background:var(--bad);color:#fff;border-color:var(--bad)}
+.nav{display:flex;justify-content:flex-start;margin:0 0 12px}
+.home{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border:2px solid var(--line);border-radius:999px;background:var(--card);color:inherit;text-decoration:none;font-weight:800}
+.home:hover{border-color:var(--pri)}
+.home:focus-visible{outline:3px solid var(--sec)}
 .top{display:flex;justify-content:space-between;font-weight:700}
 .bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin:8px 0}
 .bar i{display:block;height:100%;background:var(--pri);transition:width .3s}
@@ -43,7 +47,7 @@ const sh=a=>a.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
 let score=0,i=0,qs=[],lock=false,best=0,mode="";
 try{best=+localStorage.getItem("best2")||0}catch(e){}
 function home(){
- app.innerHTML=`<h1>Digestioaren prozesua 🍽️</h1><p>Ikasi janaria nola bihurtzen den energia!</p>
+ app.innerHTML=`<div class="nav"><a class="home" href="/">🏠 Home</a></div><h1>Digestioaren prozesua 🍽️</h1><p>Ikasi janaria nola bihurtzen den energia!</p>
  <div class="card"><button class="big" onclick="startOrder()">1. Jarri urratsak ordenan</button>
  <button class="big" onclick="startBlank()">2. Bete hutsuneak</button>
  <button class="big" onclick="startWhat()">3. Zer eta non?</button>
