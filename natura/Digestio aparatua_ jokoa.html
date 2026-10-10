@@ -1,3 +1,4 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <!DOCTYPE html>
 <html lang="eu"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -18,10 +19,6 @@ button.big{background:var(--pri);color:#fff;border-color:var(--pri);text-align:c
 button.alt{background:var(--sec);color:#fff;border-color:var(--sec);text-align:center}
 button.ok{background:var(--ok);color:#fff;border-color:var(--ok)}
 button.bad{background:var(--bad);color:#fff;border-color:var(--bad)}
-.nav{display:flex;justify-content:flex-start;margin:0 0 12px}
-.home{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border:2px solid var(--line);border-radius:999px;background:var(--card);color:inherit;text-decoration:none;font-weight:800}
-.home:hover{border-color:var(--pri)}
-.home:focus-visible{outline:3px solid var(--sec)}
 .top{display:flex;justify-content:space-between;font-weight:700}
 .bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin:8px 0}
 .bar i{display:block;height:100%;background:var(--pri);width:0;transition:width .3s}
@@ -49,11 +46,22 @@ const O=[
 const PATH=["Ahoa","Faringea","Hestegorria","Urdaila","Heste mehea","Heste lodia","Uzkia"];
 const $=id=>document.getElementById(id), app=$("app");
 const sh=a=>a.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+/* ===== Ez errepikatu: tandak eta partidak artean ===== */
+function qkey(x){return typeof x==="string"?x:Array.isArray(x)?String(x[0]):(x.t||x.id||x.name||x.n||JSON.stringify(x))+(x.a||"")}
+function draw(ns,pool,n){
+ let h={};try{h=JSON.parse(localStorage.getItem("seen_"+ns)||"{}")}catch(e){}
+ let pick=sh(pool.filter(x=>!h[qkey(x)])).slice(0,n);
+ if(pick.length<n){h={};const ks=new Set(pick.map(qkey));pick=pick.concat(sh(pool.filter(x=>!ks.has(qkey(x)))).slice(0,n-pick.length))}
+ pick.forEach(x=>h[qkey(x)]=1);
+ try{localStorage.setItem("seen_"+ns,JSON.stringify(h))}catch(e){}
+ return sh(pick);
+}
+
 let score=0,i=0,qs=[],lock=false,best=0;
 try{best=+localStorage.getItem("best")||0}catch(e){}
 
 function home(){
- app.innerHTML=`<div class="nav"><a class="home" href="/">🏠 Home</a></div><h1>Digestio aparatua 🍎</h1><p>Ikasi fitxa jolas eginez!</p>
+ app.innerHTML=`<a href="/">🏠 Home</a><h1>Digestio aparatua 🍎</h1><p>Ikasi fitxa jolas eginez!</p>
  <div class="card"><button class="big" onclick="startQuiz()">1. Zein organoa da?</button>
  <button class="big" onclick="startPath()">2. Janariaren bidaia</button>
  <button class="big" onclick="startTF()">3. Egia ala gezurra?</button>
@@ -108,7 +116,7 @@ const XQ=[
 ["Zer dituzte heste mehearen hormek?","Tolesdurak eta biloak",["Hortzak eta mihia","Kardia eta piloroa","Itsua eta kolona"]],
 ["Zer dago ahoaren barruan?","Hortzak, mihia eta listu guruinak",["Gibela eta pankrea","Kardia eta piloroa","Itsua eta kolona"]]
 ].map(c=>({t:c[0],s:"Aukeratu erantzun zuzena.",a:c[1],w:c[2]}));
-function startQuiz(){score=0;i=0;qs=sh([...OQ,...XQ]).slice(0,10);quiz()}
+function startQuiz(){score=0;i=0;qs=draw("quiz",[...OQ,...XQ],10);quiz()}
 function quiz(){
  if(i>=qs.length)return end();
  const q=qs[i];choice(q.t,q.s,q.a,sh(q.w).slice(0,3),quiz,q.img);
@@ -132,7 +140,7 @@ function pathRound(){
 }
 /* 3. True/false */
 const T=[["Digestio aparatuaren funtzioa digestioa egitea da.", 1], ["Digestio aparatua digestio hodiak eta digestio guruinek osatzen dute.", 1], ["Digestio hodia muskulu konduktu bat da.", 1], ["Digestio hodiak zazpi atal ditu.", 1], ["Ahoa digestio hodirako sarrera da.", 1], ["Ahoan hortzak, mihia eta listu guruinak daude.", 1], ["Faringeak elikagaiak hestegorrira bideratzen ditu.", 1], ["Hestegorriak faringea eta urdaila lotzen ditu.", 1], ["Urdaila digestio hodian zabalgunea da.", 1], ["Urdailak bi balbula ditu: kardia eta piloroa.", 1], ["Kardia urdailaren sarreran dago.", 1], ["Piloroa urdailaren irteeran dago.", 1], ["Gibela guruin handi bat da.", 1], ["Gibelak behazuna sortzen du.", 1], ["Pankrea guruin bat da.", 1], ["Pankreak pankreako guruina sortzen du.", 1], ["Heste mehea hodi luze bat da.", 1], ["Heste mehearen hormek tolesdurak eta biloak dituzte.", 1], ["Heste lodiak hiru atal ditu.", 1], ["Heste lodiaren atalak itsua, kolona eta ondestea dira.", 1], ["Uzkia digestio hodiaren azken zatia da.", 1], ["Uzkitik hondakinak kanporatzen dira.", 1], ["Digestio guruinak listu guruinak, pankrea eta gibela dira.", 1], ["Digestio hodiak hiru atal ditu.", 0], ["Faringeak urdaila eta heste mehea lotzen ditu.", 0], ["Hestegorriak behazuna sortzen du.", 0], ["Kardia urdailaren irteeran dago.", 0], ["Piloroa urdailaren sarreran dago.", 0], ["Pankreak behazuna sortzen du.", 0], ["Gibelak pankreako guruina sortzen du.", 0], ["Heste lodiaren hormek biloak dituzte.", 0], ["Heste lodiak bi atal ditu.", 0], ["Heste mehea hiru atalekoa da: itsua, kolona eta ondestea.", 0], ["Hortzak urdailean daude.", 0], ["Uzkia digestio hodiaren lehen zatia da.", 0], ["Listu guruinak urdailean daude.", 0], ["Urdailak hiru balbula ditu.", 0], ["Gibela eta pankrea digestio hodiaren zati dira.", 0], ["Ahoa digestio hodiaren irteera da.", 0], ["Uzkia heste mehearen atal bat da.", 0]];
-function startTF(){score=0;i=0;qs=sh(T).slice(0,10);tf()}
+function startTF(){score=0;i=0;qs=draw("tf",T,10);tf()}
 function tf(){
  if(i>=qs.length)return end();
  lock=false;const q=qs[i];
@@ -162,7 +170,7 @@ function variants(s){
 function lit(s){return `<p class="note">📖 Fitxan: <b>${s.t}</b></p>`}
 /* A. Osatu esaldia */
 let bPos=0,bErr=0,bS=null;
-function startBuild(){score=0;i=0;qs=sh(SENT).slice(0,8);build()}
+function startBuild(){score=0;i=0;qs=draw("build",SENT,8);build()}
 function build(){
  if(i>=qs.length)return end();
  const s=bS=qs[i];bPos=0;bErr=0;lock=false;
@@ -176,7 +184,7 @@ function build(){
  });
 }
 /* B. Idatzi falta dena */
-function startType(){score=0;i=0;qs=sh(SENT.filter(s=>keysOf(s).length)).slice(0,8);typeQ()}
+function startType(){score=0;i=0;qs=draw("type",SENT.filter(s=>keysOf(s).length),8);typeQ()}
 function typeQ(){
  if(i>=qs.length)return end();
  const s=qs[i],ks=keysOf(s),k=ks[Math.floor(Math.random()*ks.length)];
@@ -194,7 +202,7 @@ function typeQ(){
  $("ck").onclick=check;$("ans").onkeydown=e=>{if(e.key==="Enter")check()};$("ans").focus();
 }
 /* C. Zein esaldi da zuzena? */
-function startExact(){score=0;i=0;qs=sh(SENT.filter(s=>variants(s).length>=2)).slice(0,8);exact()}
+function startExact(){score=0;i=0;qs=draw("exact",SENT.filter(s=>variants(s).length>=2),8);exact()}
 function exact(){
  if(i>=qs.length)return end();
  const s=qs[i];lock=false;
@@ -208,3 +216,5 @@ function exact(){
 }
 home();
 </script></body></html>
+
+</body></html>
