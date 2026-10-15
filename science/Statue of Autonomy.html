@@ -1,0 +1,492 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Statue of Autonomy</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: one column of rounded cards, big tap targets. Menu -> round (one question per screen) -> results. Same warm palette as the games index. */
+:root{
+  --bg:#fff4e0; --card:#ffffff; --ink:#2b2350; --muted:#6a6286; --line:#e8d9bd;
+  --pri:#e5502c; --on-pri:#ffffff; --sec:#5b4bdb; --sec-text:#5b4bdb; --chip:#fff8ea;
+  --good:#1b7f45; --good-bg:#e1f5e8; --bad:#c3342c; --bad-bg:#fde6e3; --focus:#5b4bdb;
+  --font:"Trebuchet MS","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1d1838; --card:#2a2350; --ink:#fff3de; --muted:#b9b1d6; --line:#443b75;
+  --pri:#ff7a5c; --on-pri:#1d1838; --sec:#8f82ff; --sec-text:#b9afff; --chip:#342b63;
+  --good:#6fd99a; --good-bg:#1f4034; --bad:#ff9b92; --bad-bg:#4a2339; --focus:#b9afff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1d1838; --card:#2a2350; --ink:#fff3de; --muted:#b9b1d6; --line:#443b75;
+  --pri:#ff7a5c; --on-pri:#1d1838; --sec:#8f82ff; --sec-text:#b9afff; --chip:#342b63;
+  --good:#6fd99a; --good-bg:#1f4034; --bad:#ff9b92; --bad-bg:#4a2339; --focus:#b9afff; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.4 var(--font)}
+main{max-width:560px;margin:0 auto;padding-block:16px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,input{font-family:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+p{margin:6px 0}
+
+.home{display:inline-flex;align-items:center;min-height:44px;color:var(--sec-text);font-weight:800;text-decoration:none}
+.hero h1{font-size:30px;line-height:1.15;margin:6px 0 4px;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 4px}
+h2.grp{font-size:15px;margin:26px 0 2px;text-transform:uppercase;letter-spacing:.06em;color:var(--sec-text);border-bottom:2px solid var(--line);padding-bottom:6px}
+.mode{display:flex;gap:14px;align-items:center;width:100%;text-align:left;background:var(--card);color:var(--ink);border:2px solid var(--line);border-radius:18px;padding:14px 16px;margin:12px 0;cursor:pointer;font-size:17px}
+.mode:hover{border-color:var(--pri)}
+.ico{font-size:38px;flex:none}
+.t,.d{display:block}
+.t{font-weight:800;font-size:19px}
+.d{color:var(--muted);font-size:15px}
+
+.top{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.back{min-height:44px;padding:0 14px;border:2px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);font-size:16px;font-weight:700;cursor:pointer}
+.prog{flex:1;height:10px;border-radius:99px;background:var(--line);overflow:hidden;min-width:30px}
+.bar{height:100%;background:var(--pri);border-radius:99px}
+.count,.score{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+.card{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:18px;margin-bottom:14px}
+.qtype{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--sec-text)}
+.lead{margin:10px 0 0;color:var(--muted);font-style:italic}
+.q{font-size:20px;font-weight:700;margin:8px 0 12px;text-wrap:pretty}
+.sentence{line-height:1.7}
+.blank{display:inline-block;min-width:4.5em;border-bottom:3px solid var(--pri);text-align:center;padding:0 6px;margin:0 2px}
+.blank.good{border-color:var(--good);color:var(--good)}
+.blank.bad{border-color:var(--bad);color:var(--bad)}
+
+.opts{display:grid;gap:10px}
+.opt{display:block;width:100%;min-height:56px;text-align:left;padding:12px 16px;border:2px solid var(--line);border-radius:16px;background:var(--chip);color:var(--ink);font-size:18px;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--pri)}
+.opt:disabled{cursor:default;color:var(--ink)}
+.opt.good,.mbtn.done{background:var(--good-bg);border-color:var(--good)}
+.opt.bad,.mbtn.wrong{background:var(--bad-bg);border-color:var(--bad)}
+
+.btn{min-height:56px;padding:0 22px;border:2px solid var(--pri);border-radius:16px;background:var(--pri);color:var(--on-pri);font-size:18px;font-weight:800;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn:disabled{opacity:.45;cursor:default}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.actions .btn{flex:1 1 140px}
+
+.slot,.bank{display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;min-width:0}
+.slot{min-height:68px;padding:10px;border:2px dashed var(--line);border-radius:16px;margin-bottom:14px}
+.slot.good{border-style:solid;border-color:var(--good);background:var(--good-bg)}
+.slot.bad{border-style:solid;border-color:var(--bad);background:var(--bad-bg)}
+.ph{color:var(--muted);align-self:center}
+.chip{min-height:48px;padding:8px 14px;border:2px solid var(--line);border-radius:14px;background:var(--chip);color:var(--ink);font-size:17px;text-align:left;cursor:pointer;max-width:100%}
+.chip.in{background:var(--card);border-color:var(--sec)}
+.chip:disabled{cursor:default;color:var(--ink)}
+
+.txt{width:100%;min-height:56px;padding:0 16px;border:2px solid var(--line);border-radius:16px;background:var(--chip);color:var(--ink);font-size:20px}
+.txt.good{border-color:var(--good);background:var(--good-bg)}
+.txt.bad{border-color:var(--bad);background:var(--bad-bg)}
+.note{color:var(--muted);min-height:1.4em;margin-top:8px}
+
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mcol{display:grid;gap:10px;align-content:start;min-width:0}
+.mbtn{width:100%;min-height:62px;padding:8px 10px;border:2px solid var(--line);border-radius:14px;background:var(--chip);color:var(--ink);font-size:16px;line-height:1.25;cursor:pointer;overflow-wrap:anywhere}
+.mbtn.sel{border-color:var(--sec);background:var(--card);box-shadow:0 0 0 2px var(--sec)}
+.mbtn.done{cursor:default;color:var(--ink)}
+@media (prefers-reduced-motion:no-preference){
+  .mbtn.wrong{animation:shake .4s}
+  @keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+}
+
+.fb{border-radius:18px;padding:14px 16px;border:2px solid}
+.fb.good{background:var(--good-bg);border-color:var(--good)}
+.fb.bad{background:var(--bad-bg);border-color:var(--bad)}
+.fb .ans,.fb .src{margin-top:8px}
+.lab{display:block;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.fb .btn{width:100%;margin-top:14px}
+
+.big{font-size:52px;font-weight:800;margin:6px 0;font-variant-numeric:tabular-nums}
+.rev{margin:10px 0;padding-top:10px;border-top:2px solid var(--line)}
+.read h2{font-size:21px;margin:4px 0 10px;text-wrap:balance}
+.read h3{font-size:15px;margin:16px 0 4px;text-transform:uppercase;letter-spacing:.06em;color:var(--sec-text)}
+.read ul{margin:6px 0;padding-left:22px}
+.read li{margin:4px 0}
+</style>
+
+<main id="app"></main>
+
+<script>
+/*DATA*/
+const rnd=n=>Math.floor(Math.random()*n);
+const shuffle=a=>{const b=a.slice();for(let i=b.length-1;i>0;i--){const j=rnd(i+1);[b[i],b[j]]=[b[j],b[i]];}return b;};
+const norm=s=>s.toLowerCase().replace(/[.,;:!?]+$/,"").replace(/\s*-\s*/g,"-").replace(/\s+/g," ").trim();
+const LEAD="The Statue of Autonomy defines:";
+/* Every sentence is copied from the worksheet. ch = pieces for ordering, gaps = words to blank, sw = [from,to] swaps that make a near-identical wrong version. */
+const S=[
+{id:"s1",t:"The communities have powers to govern themselves.",ch:"The communities | have powers | to govern themselves.",gaps:["powers","govern themselves","communities"],sw:[["have powers","have rights"],["govern themselves","govern the country"],["The communities","The countries"]]},
+{id:"s2",t:"Each Autonomous Community has a Statue of Autonomy.",ch:"Each Autonomous Community | has a | Statue of Autonomy.",gaps:["Autonomous Community","Statue of Autonomy"],sw:[["Each","Only one"],["has a","has no"],["Statue of Autonomy","Charter of Autonomy"]]},
+{id:"s3a",lead:LEAD,t:"The territory and the capital city",ch:"The territory | and the capital city",gaps:["territory","capital city"],sw:[["capital city","capital town"],["territory","region"],["The territory","The land"]]},
+{id:"s3d",lead:LEAD,t:"The symbols of the autonomous community: flag, anthem and coat of arms",ch:"The symbols of the autonomous community: | flag, anthem | and coat of arms",gaps:["symbols","anthem","coat of arms"],sw:[["flag, anthem and coat of arms","flag, song and coat of arms"],["anthem","motto"],["symbols","colours"],["coat of arms","map"]]},
+{id:"s3e",lead:LEAD,t:"Local services such as town planning, health and education",ch:"Local services | such as town planning, | health and education",gaps:["town planning","health","education"],sw:[["town planning","transport"],["health","sports"],["education","shopping"],["Local services","National services"]]},
+{id:"s4",t:"Each Autonomous Community has a Parliament.",ch:"Each Autonomous Community | has a | Parliament.",gaps:["Parliament","Autonomous Community"],sw:[["Parliament","Government"],["Each","Only one"],["has a","has no"]]},
+{id:"s5",t:"Citizens over the age of 18 can vote in elections every four years to choose deputies.",ch:"Citizens over the age of 18 | can vote in elections | every four years | to choose deputies.",gaps:["18","four","deputies","elections","vote"],sw:[["over","under"],["18","16"],["four","five"],["four","two"],["deputies","mayors"],["Citizens","Teachers"]]},
+{id:"s6",t:"These deputies make laws and elect a president for the Autonomous Community.",ch:"These deputies | make laws | and elect a president | for the Autonomous Community.",gaps:["deputies","laws","elect","president"],sw:[["laws","taxes"],["elect","remove"],["president","mayor"],["These deputies","These teachers"]]},
+{id:"s7",t:"It was approved in 1979.",ch:"It was | approved | in 1979.",gaps:["approved","1979"],sw:[["1979","1978"],["1979","1980"],["1979","1989"],["approved","signed"]]},
+{id:"s8",t:"The territory is divided into 3 provinces: Biscay, Araba and Gipuzkoa.",ch:"The territory is divided | into 3 provinces: | Biscay, Araba | and Gipuzkoa.",gaps:["3","provinces","Biscay","Araba","Gipuzkoa","divided"],sw:[["3","4"],["3","2"],["Biscay","Bilbao"],["Gipuzkoa","Donostia"],["divided","joined"]]},
+{id:"s9",t:"The capital city is Vitoria - Gasteiz.",ch:"The capital city | is | Vitoria - Gasteiz.",gaps:["capital city","Vitoria - Gasteiz","Gasteiz"],sw:[["Vitoria - Gasteiz","Bilbao"],["Vitoria - Gasteiz","Donostia"],["capital city","largest city"],["Vitoria - Gasteiz","Vitoria"]]},
+{id:"s10",t:"The official languages are Basque and Spanish.",ch:"The official languages | are Basque | and Spanish.",gaps:["official languages","Basque","Spanish"],sw:[["Basque and Spanish","Basque and English"],["official languages","spoken languages"],["Basque and Spanish","Spanish and French"]]},
+{id:"s11",t:"The Basque Parliament represents Basque citizens.",ch:"The Basque Parliament | represents | Basque citizens.",gaps:["Basque Parliament","represents","citizens"],sw:[["represents","governs"],["Parliament","Government"],["citizens","teachers"],["Basque citizens","Spanish citizens"]]},
+{id:"s12",t:"The parliament is made up of parliamentarians chosen by the citizens in elections.",ch:"The parliament is made up of parliamentarians | chosen by the citizens | in elections.",gaps:["parliamentarians","chosen","citizens","elections"],sw:[["parliamentarians","mayors"],["chosen","paid"],["citizens","judges"],["elections","meetings"]]},
+{id:"s13",t:"They make laws and choose the President of the Basque Government.",ch:"They make laws | and choose the President | of the Basque Government.",gaps:["laws","choose","President","Basque Government"],sw:[["laws","money"],["choose","meet"],["President","Mayor"],["Basque Government","Foral Deputation"]]},
+{id:"s14",t:"Right now, the President is Imanol Pradales.",ch:"Right now, | the President | is Imanol Pradales.",gaps:["President","Imanol Pradales","Pradales"],sw:[["Imanol Pradales","Juan Mari Aburto"],["Imanol Pradales","Elixabete Etxanobe"],["President","Mayor"]]},
+{id:"s15",t:"At the Provincial level, each province has a Foral Deputation.",ch:"At the Provincial level, | each province | has a Foral Deputation.",gaps:["Provincial","province","Foral Deputation"],sw:[["Provincial","Municipal"],["Foral Deputation","Town Hall"],["each province","each town"],["Foral Deputation","Parliament"]]},
+{id:"s16",t:"The person in charge is called the Foral Deputy.",ch:"The person in charge | is called | the Foral Deputy.",gaps:["in charge","called","Foral Deputy"],sw:[["Foral Deputy","Mayor"],["Foral Deputy","Foral President"],["in charge","in command"],["Foral Deputy","Foral Deputation"]]},
+{id:"s17",t:"For example, in Biscay the Foral Deputy is Elixabete Etxanobe.",ch:"For example, | in Biscay | the Foral Deputy | is Elixabete Etxanobe.",gaps:["Biscay","Foral Deputy","Elixabete Etxanobe","Etxanobe"],sw:[["Biscay","Araba"],["Biscay","Gipuzkoa"],["Elixabete Etxanobe","Imanol Pradales"],["Foral Deputy","Mayor"],["Elixabete Etxanobe","Juan Mari Aburto"]]},
+{id:"s18",t:"Finally, at the Municipal level, each town or city has a Town Hall.",ch:"Finally, | at the Municipal level, | each town or city | has a Town Hall.",gaps:["Municipal","town or city","Town Hall"],sw:[["Municipal","Provincial"],["Town Hall","Foral Deputation"],["town or city","province"],["Finally","First"]]},
+{id:"s19",t:"The Town Hall is led by the Mayor.",ch:"The Town Hall | is led by | the Mayor.",gaps:["Town Hall","led","Mayor"],sw:[["Mayor","President"],["Mayor","Foral Deputy"],["Town Hall","Parliament"],["led by","chosen by"]]},
+{id:"s20",t:"In Bilbao, the Mayor is Juan Mari Aburto.",ch:"In Bilbao, | the Mayor | is Juan Mari Aburto.",gaps:["Bilbao","Mayor","Juan Mari Aburto","Aburto"],sw:[["Juan Mari Aburto","Imanol Pradales"],["Juan Mari Aburto","Elixabete Etxanobe"],["Mayor","President"],["Bilbao","Vitoria - Gasteiz"]]}
+];
+/* Concept questions: s = sentence it comes from, a = right answer, w = wrong answers. */
+const QUIZ=[
+{id:"q1",s:"s1",q:"The communities have powers to...",a:"govern themselves",w:["build an army","print their own money","close the borders"]},
+{id:"q2",s:"s2",q:"What does each Autonomous Community have?",a:"A Statue of Autonomy",w:["A Charter of Rights","A Royal Palace","A National Army"]},
+{id:"q5",s:"s3d",q:"Which are the symbols of the autonomous community?",a:"Flag, anthem and coat of arms",w:["Town planning, health and education","Territory, capital city and language","Parliament, deputies and president"]},
+{id:"q35",s:"s3e",q:"Which local services are in the Statue of Autonomy?",a:"Town planning, health and education",w:["Football, music and cinema","Flag, anthem and coat of arms","Parliament, deputies and president"]},
+{id:"q33",s:"s4",q:"Which institution does each Autonomous Community have?",a:"A Parliament",w:["A Town Hall","A Foral Deputation","A Royal Palace"]},
+{id:"q7",s:"s5",q:"Who can vote in elections?",a:"Citizens over the age of 18",w:["Citizens over the age of 16","Citizens over the age of 21","Only the deputies"]},
+{id:"q8",s:"s5",q:"How often are there elections?",a:"Every four years",w:["Every year","Every two years","Every ten years"]},
+{id:"q9",s:"s5",q:"What do citizens choose in the elections?",a:"Deputies",w:["A new flag","The capital city","The official language"]},
+{id:"q6",s:"s6",q:"What do the deputies do?",a:"They make laws and elect a president",w:["They teach at school","They run the Town Hall","They are in charge of the Foral Deputation"]},
+{id:"q10",s:"s6",q:"Who elects the president of the Autonomous Community?",a:"The deputies",w:["The citizens, directly","The Mayor","The Foral Deputy"]},
+{id:"q11",s:"s7",q:"When was the Statue of Autonomy of the Basque Country approved?",a:"In 1979",w:["In 1978","In 1980","In 1975"]},
+{id:"q12",s:"s8",q:"Into how many provinces is the Basque territory divided?",a:"3",w:["2","4","5"]},
+{id:"q13",s:"s8",q:"Which are the 3 provinces?",a:"Biscay, Araba and Gipuzkoa",w:["Biscay, Navarre and Gipuzkoa","Bilbao, Araba and Gipuzkoa","Biscay, Araba and Donostia"]},
+{id:"q14",s:"s9",q:"What is the capital city of the Basque Country?",a:"Vitoria - Gasteiz",w:["Bilbao","Donostia","Pamplona"]},
+{id:"q15",s:"s10",q:"What are the official languages?",a:"Basque and Spanish",w:["Basque and English","Spanish and French","Only Basque"]},
+{id:"q17",s:"s11",q:"Who does the Basque Parliament represent?",a:"Basque citizens",w:["The Mayors","The Foral Deputies","Spanish deputies"]},
+{id:"q18",s:"s12",q:"Who is the Basque Parliament made up of?",a:"Parliamentarians chosen by the citizens in elections",w:["Mayors chosen by the President","Judges chosen by the Mayor","Foral Deputies chosen by the Town Hall"]},
+{id:"q19",s:"s13",q:"What do the parliamentarians do?",a:"They make laws and choose the President of the Basque Government",w:["They lead the Town Hall","They are in charge of the Foral Deputation","They choose the Mayor of Bilbao"]},
+{id:"q20",s:"s13",q:"Who chooses the President of the Basque Government?",a:"The parliamentarians",w:["The Mayor of Bilbao","The Foral Deputy","The Town Hall"]},
+{id:"q21",s:"s14",q:"Who is the President of the Basque Government right now?",a:"Imanol Pradales",w:["Juan Mari Aburto","Elixabete Etxanobe"]},
+{id:"q22",s:"s14",q:"Imanol Pradales is the...",a:"President of the Basque Government",w:["Mayor of Bilbao","Foral Deputy of Biscay"]},
+{id:"q24",s:"s15",q:"The Foral Deputation belongs to which level?",a:"Provincial level",w:["Municipal level","School level","Family level"]},
+{id:"q27",s:"s15",q:"Which institution does each province have?",a:"A Foral Deputation",w:["A Town Hall","A Parliament","A Mayor"]},
+{id:"q23",s:"s16",q:"Who is in charge of the Foral Deputation?",a:"The Foral Deputy",w:["The Mayor","The President","The parliamentarian"]},
+{id:"q25",s:"s17",q:"Who is the Foral Deputy of Biscay?",a:"Elixabete Etxanobe",w:["Imanol Pradales","Juan Mari Aburto"]},
+{id:"q26",s:"s17",q:"Elixabete Etxanobe is the...",a:"Foral Deputy of Biscay",w:["President of the Basque Government","Mayor of Bilbao"]},
+{id:"q28",s:"s18",q:"Which institution does each town or city have?",a:"A Town Hall",w:["A Foral Deputation","A Parliament","A Statue of Autonomy"]},
+{id:"q32",s:"s18",q:"At which level does the Town Hall work?",a:"Municipal level",w:["Provincial level","School level","Family level"]},
+{id:"q29",s:"s19",q:"Who leads the Town Hall?",a:"The Mayor",w:["The President","The Foral Deputy","The deputy"]},
+{id:"q30",s:"s20",q:"Who is the Mayor of Bilbao?",a:"Juan Mari Aburto",w:["Imanol Pradales","Elixabete Etxanobe"]},
+{id:"q31",s:"s20",q:"Juan Mari Aburto is the...",a:"Mayor of Bilbao",w:["President of the Basque Government","Foral Deputy of Biscay"]}
+];
+const DEFINES=["The territory and the capital city","The official language","Government institution","The symbols of the autonomous community: flag, anthem and coat of arms","Local services such as town planning, health and education"];
+const NOTDEF=["The price of food","The school timetable","The weather forecast","The football league","The cinema programme"];
+const DEFSRC="The Statue of Autonomy defines: the territory and the capital city / the official language / government institution / the symbols of the autonomous community: flag, anthem and coat of arms / local services such as town planning, health and education";
+const SYMS=["Flag","Coat of arm","Anthem"], NOTSYM=["Mascot","Currency","Postcode","Menu"];
+const SYMSRC="The symbols of the Autonomous Community are: Flag, Coat of arm, Anthem";
+/* Pairs for the matching boards; grp stops two confusable pairs from sharing a board. */
+const PAIRS=[
+{id:"p1",grp:"f1",l:"1979",r:"Year the Statue of Autonomy was approved"},
+{id:"p2",grp:"f2",l:"Vitoria - Gasteiz",r:"Capital city"},
+{id:"p3",grp:"f3",l:"Basque and Spanish",r:"Official languages"},
+{id:"p4",grp:"f4",l:"Biscay, Araba and Gipuzkoa",r:"The 3 provinces"},
+{id:"p5",grp:"a1",l:"Parliament",r:"Makes laws and elects a president"},
+{id:"p6",grp:"a2",l:"Citizens over 18",r:"Can vote in elections"},
+{id:"p7",grp:"a3",l:"Every four years",r:"Elections to choose deputies"},
+{id:"p8",grp:"a1",l:"Basque Parliament",r:"Represents Basque citizens"},
+{id:"p9",grp:"b2",l:"Imanol Pradales",r:"President of the Basque Government"},
+{id:"p10",grp:"p1",l:"Provincial level",r:"Foral Deputation"},
+{id:"p11",grp:"p2",l:"Foral Deputy",r:"Person in charge of the Foral Deputation"},
+{id:"p12",grp:"p2",l:"Elixabete Etxanobe",r:"Foral Deputy of Biscay"},
+{id:"p13",grp:"m1",l:"Municipal level",r:"Town Hall"},
+{id:"p14",grp:"m2",l:"Mayor",r:"Leads the Town Hall"},
+{id:"p15",grp:"m2",l:"Juan Mari Aburto",r:"Mayor of Bilbao"}
+];
+const ALT={"four":["4"],"3":["three"],"18":["eighteen"]};
+const pickN=(a,n)=>shuffle(a).slice(0,n);
+const choiceQ=o=>({type:"choice",label:o.label||"Quick quiz",q:o.q,lead:o.lead,options:shuffle([o.a].concat(o.w)),correct:o.a,sid:o.s,srcText:o.srcText});
+function exactQ(s){
+  const wrong=[],used=new Set([s.t]);
+  for(const [a,b] of shuffle(s.sw)){const v=s.t.replace(a,b);if(!used.has(v)){used.add(v);wrong.push(v);if(wrong.length===3)break;}}
+  return choiceQ({label:"Exact sentence",q:"Which one is exactly the same as on your worksheet?",lead:s.lead,a:s.t,w:wrong,s:s.id});
+}
+function gapQ(s,w){const i=s.t.indexOf(w);return{type:"gap",label:"Fill the gap",lead:s.lead,before:s.t.slice(0,i),after:s.t.slice(i+w.length),answer:w,accept:[w].concat(ALT[w]||[]),sid:s.id};}
+function orderQ(s){
+  const parts=s.ch.split("|").map(x=>x.trim());
+  let sh=parts.map((t,i)=>({t,i}));
+  do{sh=shuffle(sh);}while(sh.every((x,i)=>x.i===i));
+  return{type:"order",label:"Put it in order",lead:s.lead,parts:sh,target:s.t,sid:s.id};
+}
+const POOL={choice:[],order:[],gap:[],exact:[],match:[]};
+QUIZ.forEach(z=>POOL.choice.push({id:z.id,grp:z.s,build:()=>choiceQ(z)}));
+POOL.choice.push({id:"g-defs",grp:"defs",build:()=>Math.random()<.5
+  ?choiceQ({q:"Which of these does the Statue of Autonomy define?",a:pickN(DEFINES,1)[0],w:pickN(NOTDEF,3),srcText:DEFSRC})
+  :choiceQ({q:"Which of these is NOT defined by the Statue of Autonomy?",a:pickN(NOTDEF,1)[0],w:pickN(DEFINES,3),srcText:DEFSRC})});
+POOL.choice.push({id:"g-sym",grp:"sym",build:()=>choiceQ({q:"Which of these is a symbol of the Basque Autonomous Community?",a:pickN(SYMS,1)[0],w:pickN(NOTSYM,3),srcText:SYMSRC})});
+S.forEach(s=>{
+  s.gaps.forEach(w=>POOL.gap.push({id:s.id+"|g|"+w,grp:s.id,build:()=>gapQ(s,w)}));
+  if(s.ch.split("|").length>=3)POOL.order.push({id:s.id+"|o",grp:s.id,build:()=>orderQ(s)});
+  POOL.exact.push({id:s.id+"|e",grp:s.id,build:()=>exactQ(s)});
+});
+PAIRS.forEach(p=>POOL.match.push(p));
+/*ENDDATA*/
+
+/* ---------- engine ---------- */
+const $app=document.getElementById("app");
+let seen={};
+try{seen=JSON.parse(localStorage.getItem("soc-seen")||"{}")||{};}catch(e){seen={};}
+const bump=id=>{seen[id]=(seen[id]||0)+1;try{localStorage.setItem("soc-seen",JSON.stringify(seen));}catch(e){}};
+const rank=items=>items.map(it=>({it,k:(seen[it.id]||0)+Math.random()*1.5})).sort((a,b)=>a.k-b.k).map(o=>o.it);
+
+function h(tag,props,...kids){
+  const e=document.createElement(tag);
+  if(props)for(const k in props){const v=props[k];
+    if(k==="class")e.className=v;
+    else if(k==="onclick")e.onclick=v;
+    else if(k==="text")e.textContent=v;
+    else if(v===true)e.setAttribute(k,"");
+    else if(v!==false&&v!=null)e.setAttribute(k,v);}
+  add(e,...kids);return e;
+}
+function add(p,...k){k.flat().forEach(x=>{if(x!=null&&x!==false)p.append(x);});return p;}
+const srcOf=q=>{
+  if(q.srcText)return q.srcText;
+  if(q.sid){const s=S.find(x=>x.id===q.sid);return s?(s.lead?s.lead+" ":"")+s.t:"";}
+  return "";
+};
+
+/* ---------- menu ---------- */
+function showMenu(){
+  round=null;
+  const m=(mode,icon,t,d)=>`<button class="mode" type="button" data-mode="${mode}"><span class="ico">${icon}</span><span><span class="t">${t}</span><span class="d">${d}</span></span></button>`;
+  $app.innerHTML=`<a class="home" href="/">🏠 Home</a>
+<header class="hero"><h1>Social Science</h1><p class="sub">Statue of Autonomy and the Basque Country. New questions every round.</p></header>
+<h2 class="grp">Read first</h2>
+${m("read","📖","Read the sheet","All the sentences, in your worksheet's words")}
+<h2 class="grp">Concepts</h2>
+${m("quiz","❓","Quick quiz","10 questions: who, what, when and where")}
+${m("match","🔗","Match the pairs","3 boards: levels, leaders and facts")}
+<h2 class="grp">Exact sentences</h2>
+${m("order","🧩","Put it in order","Build the sentence from its pieces")}
+${m("gap","✍️","Fill the gap","Type the missing words exactly")}
+${m("exact","🎯","Pick the exact sentence","Only one is word for word")}
+<h2 class="grp">Everything</h2>
+${m("mix","🏆","Mix it up","12 questions of every kind")}`;
+  $app.querySelectorAll("[data-mode]").forEach(b=>{b.onclick=()=>start(b.dataset.mode);});
+  window.scrollTo(0,0);
+}
+
+/* ---------- rounds ---------- */
+let round=null;
+function start(mode){
+  if(mode==="read")return showRead();
+  round=buildRound(mode);
+  showQ();
+}
+function pick(type,n,used){
+  used=used||new Set();const out=[];
+  for(const it of rank(POOL[type])){
+    if(out.length>=n)break;
+    if(used.has(it.grp))continue;
+    used.add(it.grp);out.push(it);bump(it.id);
+  }
+  return out;
+}
+function pickMix(n){
+  const types=shuffle(["choice","choice","choice","choice","gap","gap","gap","order","order","exact","exact","exact"]).slice(0,n);
+  const used=new Set(),ranked={},out=[];
+  types.forEach(t=>{
+    ranked[t]=ranked[t]||rank(POOL[t]);
+    const it=ranked[t].find(x=>!used.has(x.grp)&&!out.includes(x));
+    if(it){used.add(it.grp);bump(it.id);out.push(it);}
+  });
+  return out;
+}
+function buildBoards(){
+  const boards=[[],[],[]];
+  for(const it of rank(POOL.match)){
+    for(const b of boards){
+      if(b.length<4&&!b.some(x=>x.grp===it.grp)){b.push(it);bump(it.id);break;}
+    }
+    if(boards.every(b=>b.length===4))break;
+  }
+  return boards.filter(b=>b.length>=2).map(b=>({type:"match",label:"Match the pairs",pairs:b}));
+}
+function buildRound(mode){
+  const r={mode,qs:[],i:0,score:0,missed:[],answered:false};
+  if(mode==="match"){r.qs=buildBoards();return r;}
+  const items=mode==="quiz"?pick("choice",10)
+    :mode==="order"?pick("order",8)
+    :mode==="gap"?pick("gap",10)
+    :mode==="exact"?pick("exact",10)
+    :pickMix(12);
+  r.qs=items.map(it=>it.build());
+  return r;
+}
+
+function showQ(){
+  const r=round,q=r.qs[r.i];r.answered=false;
+  const star=h("span",{class:"score",text:"⭐ "+r.score});
+  const bar=h("div",{class:"bar"});bar.style.width=(r.i/r.qs.length*100)+"%";
+  const top=h("div",{class:"top"},
+    h("button",{class:"back",type:"button",text:"← Menu",onclick:showMenu}),
+    h("div",{class:"prog","aria-hidden":"true"},bar),
+    h("span",{class:"count",text:(r.i+1)+" / "+r.qs.length}),star);
+  const card=h("section",{class:"card"});
+  const fb=h("div",{role:"status","aria-live":"polite"});
+  const finish=(ok,info)=>{
+    info=info||{};
+    if(r.answered)return;r.answered=true;
+    if(ok&&!info.hint){r.score++;star.textContent="⭐ "+r.score;}
+    const t=srcOf(q);
+    if(!ok){
+      if(q.type==="match")(info.pairs||[]).forEach(p=>r.missed.push(p.l+" — "+p.r));
+      else if(t)r.missed.push(t);
+    }
+    const last=r.i===r.qs.length-1;
+    const box=h("div",{class:"fb "+(ok?"good":"bad")},
+      h("strong",{text:ok?(info.hint?"Correct, but you used a hint, so no star.":"Correct! ⭐"):(q.type==="match"?"Finished. A few pairs needed another try.":"Not quite.")}),
+      (!ok&&info.answer)?h("div",{class:"ans"},"The missing words: ",h("b",{text:info.answer})):null,
+      t?h("div",{class:"src"},h("span",{class:"lab",text:"On your sheet"}),h("span",{text:t})):null,
+      h("button",{class:"btn",type:"button",text:last?"See results":"Next →",onclick:()=>{r.i++;if(last)showResults();else showQ();}}));
+    fb.replaceChildren(box);
+    box.scrollIntoView({block:"nearest"});
+  };
+  ({choice:rChoice,order:rOrder,gap:rGap,match:rMatch})[q.type](q,finish,card);
+  $app.replaceChildren(top,card,fb);
+  window.scrollTo(0,0);
+  const first=card.querySelector("input");if(first)first.focus({preventScroll:true});
+}
+
+const head=q=>[h("div",{class:"qtype",text:q.label}),q.lead?h("p",{class:"lead",text:q.lead}):null];
+
+function rChoice(q,finish,card){
+  const list=h("div",{class:"opts"});
+  q.options.forEach(o=>{
+    const b=h("button",{class:"opt",type:"button",text:o});
+    b.onclick=()=>{
+      [...list.children].forEach(x=>{x.disabled=true;if(x.textContent===q.correct)x.classList.add("good");});
+      if(o!==q.correct)b.classList.add("bad");
+      finish(o===q.correct);
+    };
+    list.append(b);
+  });
+  add(card,head(q),h("p",{class:"q",text:q.q}),list);
+}
+
+function rOrder(q,finish,card){
+  add(card,head(q),h("p",{class:"q",text:"Tap the pieces in the right order to build the sentence."}));
+  let ans=[],bank=q.parts.slice(),locked=false;
+  const slot=h("div",{class:"slot"}),bankEl=h("div",{class:"bank"});
+  const check=h("button",{class:"btn",type:"button",text:"Check"});
+  const reset=h("button",{class:"btn ghost",type:"button",text:"Start again"});
+  const chip=(c,fn,cls)=>h("button",{class:"chip"+(cls?" "+cls:""),type:"button",text:c.t,disabled:locked,onclick:fn});
+  function draw(cls){
+    slot.className="slot"+(cls?" "+cls:"");
+    slot.replaceChildren(...(ans.length
+      ?ans.map(c=>chip(c,()=>{ans=ans.filter(x=>x!==c);bank.push(c);draw();},"in"))
+      :[h("span",{class:"ph",text:"Your sentence goes here"})]));
+    bankEl.replaceChildren(...bank.map(c=>chip(c,()=>{bank=bank.filter(x=>x!==c);ans.push(c);draw();})));
+    check.disabled=locked||ans.length!==q.parts.length;
+    reset.disabled=locked||!ans.length;
+  }
+  check.onclick=()=>{const ok=ans.map(c=>c.t).join(" ")===q.target;locked=true;draw(ok?"good":"bad");finish(ok);};
+  reset.onclick=()=>{bank=q.parts.slice();ans=[];draw();};
+  add(card,slot,bankEl,h("div",{class:"actions"},reset,check));
+  draw();
+}
+
+function rGap(q,finish,card){
+  add(card,head(q),h("p",{class:"q sentence"},q.before,h("span",{class:"blank"}),q.after),
+    h("p",{class:"note",text:"Write the missing words exactly as on your sheet."}));
+  const inp=h("input",{class:"txt",id:"gap-answer",type:"text",autocomplete:"off",autocapitalize:"none",spellcheck:"false",placeholder:"Type the missing words","aria-label":"Missing words"});
+  const note=h("p",{class:"note"});
+  const hintBtn=h("button",{class:"btn ghost",type:"button",text:"Hint"});
+  const check=h("button",{class:"btn",type:"button",text:"Check"});
+  let hinted=false;
+  hintBtn.onclick=()=>{
+    hinted=true;const w=q.answer;
+    const words=w.split(" ").filter(x=>x!=="-").length,letters=w.replace(/[^A-Za-z0-9]/g,"").length;
+    note.textContent="Starts with "+w[0]+". "+words+(words===1?" word":" words")+", "+letters+" letters.";
+    inp.focus();
+  };
+  const submit=()=>{
+    const v=norm(inp.value);
+    if(!v){inp.focus();return;}
+    const ok=q.accept.some(a=>norm(a)===v);
+    inp.disabled=true;check.disabled=true;hintBtn.disabled=true;
+    inp.classList.add(ok?"good":"bad");
+    const bl=card.querySelector(".blank");bl.textContent=q.answer;bl.classList.add(ok?"good":"bad");
+    finish(ok,{hint:hinted,answer:q.answer});
+  };
+  check.onclick=submit;
+  inp.addEventListener("keydown",e=>{if(e.key==="Enter")submit();});
+  add(card,inp,note,h("div",{class:"actions"},hintBtn,check));
+}
+
+function rMatch(q,finish,card){
+  add(card,head(q),h("p",{class:"q",text:"Tap one on the left, then its partner on the right."}));
+  const L=shuffle(q.pairs),R=shuffle(q.pairs);
+  let sl=null,sr=null,solved=0,locked=false;const mist=new Set();
+  function resolve(){
+    const a=sl,b=sr;sl=sr=null;
+    if(a.p===b.p){
+      [a.b,b.b].forEach(x=>{x.classList.remove("sel");x.classList.add("done");x.disabled=true;});
+      solved++;
+      if(solved===q.pairs.length)finish(mist.size===0,{pairs:q.pairs.filter(p=>mist.has(p))});
+    }else{
+      mist.add(a.p);mist.add(b.p);locked=true;
+      [a.b,b.b].forEach(x=>x.classList.add("wrong"));
+      setTimeout(()=>{[a.b,b.b].forEach(x=>x.classList.remove("wrong","sel"));locked=false;},650);
+    }
+  }
+  const mk=(p,side)=>{
+    const b=h("button",{class:"mbtn",type:"button",text:side==="l"?p.l:p.r});
+    b.onclick=()=>{
+      if(locked||b.classList.contains("done"))return;
+      if(side==="l"){if(sl)sl.b.classList.remove("sel");sl={p,b};}
+      else{if(sr)sr.b.classList.remove("sel");sr={p,b};}
+      b.classList.add("sel");
+      if(sl&&sr)resolve();
+    };
+    return b;
+  };
+  add(card,h("div",{class:"mgrid"},h("div",{class:"mcol"},L.map(p=>mk(p,"l"))),h("div",{class:"mcol"},R.map(p=>mk(p,"r")))));
+}
+
+/* ---------- results and reading ---------- */
+function showResults(){
+  const r=round,n=r.qs.length,s=r.score,uniq=[...new Set(r.missed)];
+  const msg=s===n?"Perfect! Every single one.":s/n>=.7?"Great work!":s/n>=.4?"Good try. One more round will help.":"Keep going. Read the sheet, then try again.";
+  $app.replaceChildren(...[
+    h("section",{class:"card"},h("div",{class:"qtype",text:"Round finished"}),h("p",{class:"big",text:s+" / "+n}),h("p",{class:"q",text:msg})),
+    uniq.length?h("section",{class:"card"},h("div",{class:"qtype",text:"Practise these"}),...uniq.map(t=>h("p",{class:"rev",text:t}))):null,
+    h("div",{class:"actions"},
+      h("button",{class:"btn",type:"button",text:"Play again",onclick:()=>start(r.mode)}),
+      h("button",{class:"btn ghost",type:"button",text:"Menu",onclick:showMenu}))
+  ].filter(Boolean));
+  window.scrollTo(0,0);
+}
+function showRead(){
+  const T=id=>S.find(x=>x.id===id).t;
+  const top=h("div",{class:"top"},h("button",{class:"back",type:"button",text:"← Menu",onclick:showMenu}));
+  const c1=h("section",{class:"card read"},
+    h("p",{text:T("s1")}),
+    h("h2",{text:"Statue of Autonomy"}),
+    h("p",{text:T("s2")}),
+    h("p",{text:LEAD}),
+    h("ul",null,
+      h("li",{text:T("s3a")}),h("li",{text:"The official language"}),h("li",{text:"Government institution"}),
+      h("li",{text:T("s3d")}),h("li",{text:T("s3e")})),
+    h("h3",{text:"Organisation"}),
+    h("p",{text:T("s4")+" "+T("s5")}),
+    h("p",{text:T("s6")}));
+  const c2=h("section",{class:"card read"},
+    h("h2",{text:"The statue of Autonomy of the Basque Country"}),
+    h("p",{text:T("s7")}),
+    h("p",{text:T("s8")+" "+T("s9")}),
+    h("p",{text:T("s10")+" The symbols of the Autonomous Community are: Flag, Coat of arm, Anthem (pictures on your sheet)."}),
+    h("h3",{text:"Basque Parliament"}),
+    h("p",{text:T("s11")+" "+T("s12")+" "+T("s13")+" "+T("s14")}),
+    h("h3",{text:"Provincial level"}),
+    h("p",{text:T("s15")}),h("p",{text:T("s16")}),h("p",{text:T("s17")}),
+    h("h3",{text:"Municipal level"}),
+    h("p",{text:T("s18")+" "+T("s19")}),h("p",{text:T("s20")}));
+  $app.replaceChildren(top,c1,c2,h("button",{class:"btn",type:"button",style:"width:100%",text:"Back to the menu",onclick:showMenu}));
+  window.scrollTo(0,0);
+}
+showMenu();
+</script>
+
+</body></html>
