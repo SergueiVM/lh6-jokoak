@@ -1,0 +1,783 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>MCM y MCD con barras</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: one column of rounded cards, big tap targets. Menu -> round (one question per screen) -> results. Same warm palette as the games index; coral and indigo bars carry the two numbers through every model. */
+:root{
+  --bg:#fff4e0; --card:#ffffff; --ink:#2b2350; --muted:#6a6286; --line:#e8d9bd;
+  --pri:#e5502c; --on-pri:#ffffff; --sec:#5b4bdb; --sec-text:#5b4bdb; --chip:#fff8ea;
+  --good:#1b7f45; --good-bg:#e1f5e8; --bad:#c3342c; --bad-bg:#fde6e3; --focus:#5b4bdb;
+  --ca:#e5502c; --ca-bg:#ffe1d8; --ca-line:rgba(229,80,44,.35);
+  --cb:#5b4bdb; --cb-bg:#e4e0ff; --cb-line:rgba(91,75,219,.35);
+  --font:"Trebuchet MS","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1d1838; --card:#2a2350; --ink:#fff3de; --muted:#b9b1d6; --line:#443b75;
+  --pri:#ff7a5c; --on-pri:#1d1838; --sec:#8f82ff; --sec-text:#b9afff; --chip:#342b63;
+  --good:#6fd99a; --good-bg:#1f4034; --bad:#ff9b92; --bad-bg:#4a2339; --focus:#b9afff;
+  --ca:#ff8a6e; --ca-bg:#4d2c3a; --ca-line:rgba(255,138,110,.4);
+  --cb:#a89dff; --cb-bg:#383069; --cb-line:rgba(168,157,255,.4); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1d1838; --card:#2a2350; --ink:#fff3de; --muted:#b9b1d6; --line:#443b75;
+  --pri:#ff7a5c; --on-pri:#1d1838; --sec:#8f82ff; --sec-text:#b9afff; --chip:#342b63;
+  --good:#6fd99a; --good-bg:#1f4034; --bad:#ff9b92; --bad-bg:#4a2339; --focus:#b9afff;
+  --ca:#ff8a6e; --ca-bg:#4d2c3a; --ca-line:rgba(255,138,110,.4);
+  --cb:#a89dff; --cb-bg:#383069; --cb-line:rgba(168,157,255,.4); color-scheme:dark}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.4 var(--font)}
+main{max-width:560px;margin:0 auto;padding-block:16px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,input{font-family:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+p{margin:6px 0}
+
+.home{display:inline-flex;align-items:center;min-height:44px;color:var(--sec-text);font-weight:800;text-decoration:none}
+.hero h1{font-size:30px;line-height:1.15;margin:6px 0 4px;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 4px}
+h2.grp{font-size:15px;margin:26px 0 2px;text-transform:uppercase;letter-spacing:.06em;color:var(--sec-text);border-bottom:2px solid var(--line);padding-bottom:6px}
+.mode{display:flex;gap:14px;align-items:center;width:100%;text-align:left;background:var(--card);color:var(--ink);border:2px solid var(--line);border-radius:18px;padding:14px 16px;margin:12px 0;cursor:pointer;font-size:17px}
+.mode:hover{border-color:var(--pri)}
+.ico{font-size:38px;flex:none}
+.t,.d{display:block}
+.t{font-weight:800;font-size:19px}
+.d{color:var(--muted);font-size:15px}
+
+.top{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.back{min-height:44px;padding:0 14px;border:2px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);font-size:16px;font-weight:700;cursor:pointer}
+.prog{flex:1;height:10px;border-radius:99px;background:var(--line);overflow:hidden;min-width:30px}
+.bar{height:100%;background:var(--pri);border-radius:99px}
+.count,.score{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+.card{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:18px;margin-bottom:14px}
+.qtype{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--sec-text)}
+.lead{margin:10px 0 0;color:var(--muted);font-style:italic}
+.q{font-size:20px;font-weight:700;margin:8px 0 12px;text-wrap:pretty}
+.prob{font-size:19px;line-height:1.5;margin:8px 0 14px}
+.sentence{line-height:1.7}
+.blank{display:inline-block;min-width:4.5em;border-bottom:3px solid var(--pri);text-align:center;padding:0 6px;margin:0 2px}
+.blank.good{border-color:var(--good);color:var(--good)}
+.blank.bad{border-color:var(--bad);color:var(--bad)}
+
+.opts{display:grid;gap:10px}
+.opt{display:block;width:100%;min-height:56px;text-align:left;padding:12px 16px;border:2px solid var(--line);border-radius:16px;background:var(--chip);color:var(--ink);font-size:18px;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--pri)}
+.opt:disabled{cursor:default;color:var(--ink)}
+.opt.good{background:var(--good-bg);border-color:var(--good)}
+.opt.bad{background:var(--bad-bg);border-color:var(--bad)}
+
+.btn{min-height:56px;padding:0 22px;border:2px solid var(--pri);border-radius:16px;background:var(--pri);color:var(--on-pri);font-size:18px;font-weight:800;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn:disabled{opacity:.45;cursor:default}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.actions .btn{flex:1 1 140px}
+
+.slot,.bank{display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;min-width:0}
+.slot{min-height:68px;padding:10px;border:2px dashed var(--line);border-radius:16px;margin-bottom:14px}
+.slot.good{border-style:solid;border-color:var(--good);background:var(--good-bg)}
+.slot.bad{border-style:solid;border-color:var(--bad);background:var(--bad-bg)}
+.ph{color:var(--muted);align-self:center}
+.chip{min-height:48px;padding:8px 14px;border:2px solid var(--line);border-radius:14px;background:var(--chip);color:var(--ink);font-size:17px;text-align:left;cursor:pointer;max-width:100%}
+.chip.in{background:var(--card);border-color:var(--sec)}
+.chip:disabled{cursor:default;color:var(--ink)}
+
+.txt{width:100%;min-height:56px;padding:0 16px;border:2px solid var(--line);border-radius:16px;background:var(--chip);color:var(--ink);font-size:22px;font-variant-numeric:tabular-nums}
+.txt.good{border-color:var(--good);background:var(--good-bg)}
+.txt.bad{border-color:var(--bad);background:var(--bad-bg)}
+.note{color:var(--muted);min-height:1.4em;margin-top:8px}
+.note.bad{color:var(--bad);font-weight:700}
+.note.good{color:var(--good);font-weight:700}
+.hint{background:var(--chip);border:2px dashed var(--line);border-radius:14px;padding:10px 14px;margin-top:12px;font-size:16px}
+.hint .line{margin:4px 0}
+
+.fb{border-radius:18px;padding:14px 16px;border:2px solid}
+.fb.good{background:var(--good-bg);border-color:var(--good)}
+.fb.bad{background:var(--bad-bg);border-color:var(--bad)}
+.fb .ans,.fb .src,.fb .exp{margin-top:10px}
+.lab{display:block;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.fb .btn{width:100%;margin-top:14px}
+.exp{background:var(--card);border-radius:14px;padding:10px 12px}
+.exp .line{margin:6px 0}
+
+.big{font-size:52px;font-weight:800;margin:6px 0;font-variant-numeric:tabular-nums}
+.rev{margin:10px 0;padding-top:10px;border-top:2px solid var(--line)}
+.read h2{font-size:21px;margin:4px 0 10px;text-wrap:balance}
+.read h3{font-size:15px;margin:16px 0 4px;text-transform:uppercase;letter-spacing:.06em;color:var(--sec-text)}
+.read p{margin:8px 0}
+.big-eq{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
+
+/* ---- bar models ---- */
+.model{display:grid;gap:12px;margin:10px 0 14px;min-width:0}
+.rl{display:flex;justify-content:space-between;gap:8px;font-size:14px;margin-bottom:4px;color:var(--muted)}
+.rl b{color:var(--ink)}
+.ub,.rr,.pbar{display:flex;border-radius:8px;overflow:hidden;min-width:0;height:36px}
+.pc{position:relative;display:flex;min-width:0;background:var(--ca-bg);box-shadow:inset 0 0 0 2px var(--ca)}
+.pc.b{background:var(--cb-bg);box-shadow:inset 0 0 0 2px var(--cb)}
+.pc::after{content:"";position:absolute;top:0;bottom:0;right:0;width:3px;background:var(--card)}
+.pc i{flex:1;border-right:1px solid var(--ca-line)}
+.pc.b i{border-right-color:var(--cb-line)}
+.pc i:last-of-type{border-right:0}
+.pc span{position:absolute;right:5px;bottom:2px;font-size:11px;font-weight:800;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
+.pc.left{background:repeating-linear-gradient(45deg,var(--bad-bg) 0 5px,var(--card) 5px 9px);box-shadow:inset 0 0 0 2px var(--bad)}
+.pc.left i{border-right-color:var(--bad)}
+.pp{flex:1;display:grid;place-items:center;min-width:0;font-weight:800;font-size:15px;background:var(--ca-bg);box-shadow:inset 0 0 0 2px var(--ca);border-right:3px solid var(--card)}
+.pp.b{background:var(--cb-bg);box-shadow:inset 0 0 0 2px var(--cb)}
+.pbar{height:40px}
+.track{height:40px;border-bottom:2px solid var(--line);border-radius:4px;background-image:linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:calc(100% / var(--cap)) 100%}
+.track .rr{height:100%;border-radius:4px}
+.track.eq{border-bottom-color:var(--good)}
+.tower{margin:12px 0}
+.tctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.tctl .name{flex:1 1 130px;font-weight:800}
+.tctl .sq{min-width:48px;min-height:48px;padding:0;border:2px solid var(--line);border-radius:14px;background:var(--chip);color:var(--ink);font-size:22px;font-weight:800;cursor:pointer}
+.tctl .sq.plus{border-color:var(--pri);background:var(--pri);color:var(--on-pri)}
+.tctl .sq:disabled{opacity:.4;cursor:default}
+.tot{order:5;flex:1 0 100%;font-weight:800;font-variant-numeric:tabular-nums;text-align:left}
+.stepper{display:flex;align-items:center;gap:10px;justify-content:center;margin:12px 0 4px}
+.stepper .btn{min-width:64px;padding:0}
+.stepval{font-size:28px;font-weight:800;min-width:100px;text-align:center;font-variant-numeric:tabular-nums}
+.sumline{margin:4px 0;font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:no-preference){.pc,.pp{transition:flex .15s}}
+</style>
+
+<main id="app"></main>
+
+<script>
+/* ---------- utilities ---------- */
+const rnd=n=>Math.floor(Math.random()*n);
+const ri=(a,b)=>a+rnd(b-a+1);
+const shuffle=a=>{const b=a.slice();for(let i=b.length-1;i>0;i--){const j=rnd(i+1);[b[i],b[j]]=[b[j],b[i]];}return b;};
+const pickN=(a,n)=>shuffle(a).slice(0,n);
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const lcm=(a,b)=>a/gcd(a,b)*b;
+const divs=n=>{const r=[];for(let i=1;i<=n;i++)if(n%i===0)r.push(i);return r;};
+const mults=(n,k)=>Array.from({length:k},(_,i)=>n*(i+1));
+const uniq=a=>[...new Set(a)];
+const SUP=["⁰","¹","²","³","⁴","⁵","⁶","⁷"];
+function factor(n){const f={};for(let p=2;n>1;p++)while(n%p===0){f[p]=(f[p]||0)+1;n/=p;}return f;}
+const fmtF=f=>Object.keys(f).map(Number).sort((a,b)=>a-b).map(p=>f[p]>1?p+SUP[f[p]]:""+p).join(" · ");
+const prodF=f=>Object.keys(f).reduce((s,p)=>s*Math.pow(+p,f[p]),1);
+const norm=s=>s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[.,;:!?¿¡()]+/g,"").replace(/\s+/g," ").trim();
+const NAMES=["Ane","Mikel","Leire","Unai","Maite","Iker","Nerea","Aitor","Jon","Naroa"];
+const twoNames=()=>pickN(NAMES,2);
+
+/* pairs of numbers whose MCD is exactly d (m and n have no common factor) */
+function pairMCD(max,o){
+  o=o||{};const dmin=o.dmin||2,dmax=o.dmax||12;
+  for(let t=0;t<2000;t++){
+    const d=ri(dmin,dmax),top=Math.floor(max/d);if(top<2)continue;
+    const m=ri(1,top),n=ri(1,top);
+    if(m===n||gcd(m,n)!==1)continue;
+    if((m===1||n===1)&&Math.random()<.7)continue;
+    const a=d*m,b=d*n;if(a<4||b<4)continue;
+    return Math.random()<.5?[a,b]:[b,a];
+  }
+  return [12,18];
+}
+function pairMCM(maxL,lo,hi){
+  lo=lo||3;hi=hi||9;
+  for(let t=0;t<2000;t++){
+    const a=ri(lo,hi),b=ri(lo,hi);if(a===b)continue;
+    if(lcm(a,b)>maxL)continue;
+    if((a%b===0||b%a===0)&&Math.random()<.85)continue;
+    return [a,b];
+  }
+  return [4,6];
+}
+function fresh(used,gen){
+  let p;
+  for(let i=0;i<40;i++){p=gen();const k="p"+p.slice().sort((x,y)=>x-y).join("-");if(!used.has(k)){used.add(k);return p;}}
+  return p;
+}
+/* four numeric options: the right one plus three wrong ones that pass okf */
+function numOpts(c,cands,okf){
+  okf=okf||(()=>true);
+  const w=[],used=new Set([c]);
+  for(const x of shuffle(cands)){
+    if(Number.isInteger(x)&&x>0&&!used.has(x)&&okf(x)){used.add(x);w.push(x);if(w.length===3)break;}
+  }
+  for(let k=1;w.length<3&&k<300;k++)for(const x of [c+k,c-k]){
+    if(w.length<3&&x>0&&!used.has(x)&&okf(x)){used.add(x);w.push(x);}
+  }
+  return [c].concat(w);
+}
+function pairOpts(c,cands,fmt){
+  const key=p=>p[0]+","+p[1],used=new Set([key(c)]),w=[];
+  for(const p of shuffle(cands)){
+    if(p[0]>=0&&p[1]>=0&&!used.has(key(p))){used.add(key(p));w.push(p);if(w.length===3)break;}
+  }
+  for(let k=1;w.length<3&&k<60;k++){const p=[c[0]+k,c[1]];if(!used.has(key(p))){used.add(key(p));w.push(p);}}
+  return [c].concat(w).map(fmt);
+}
+
+/* ---------- tiny DOM helpers ---------- */
+function h(tag,props,...kids){
+  const e=document.createElement(tag);
+  if(props)for(const k in props){const v=props[k];
+    if(k==="class")e.className=v;
+    else if(k==="onclick")e.onclick=v;
+    else if(k==="text")e.textContent=v;
+    else if(v===true)e.setAttribute(k,"");
+    else if(v!==false&&v!=null)e.setAttribute(k,v);}
+  add(e,...kids);return e;
+}
+function add(p,...k){k.flat().forEach(x=>{if(x!=null&&x!==false)p.append(x);});return p;}
+const line=t=>h("p",{class:"line",text:t});
+
+/* ---------- bar-model drawing ---------- */
+/* a bar of `total` unit cells cut into pieces of `size`; what is left over is hatched */
+function unitBar(total,size,color,maxT){
+  const bar=h("div",{class:"ub"});bar.style.width=(total/maxT*100)+"%";
+  const full=Math.floor(total/size),rest=total-full*size;
+  const piece=(n,cls)=>{const p=h("div",{class:"pc "+cls});p.style.flex=n+" 1 0%";for(let k=0;k<n;k++)p.append(h("i"));return p;};
+  for(let i=0;i<full;i++)bar.append(piece(size,color));
+  if(rest)bar.append(piece(rest,"left"));
+  return bar;
+}
+function ribbonRow(name,total,size,color,maxT,unit){
+  return h("div",null,h("div",{class:"rl"},h("b",{text:name}),h("span",{text:total+" "+(unit||"cm")})),unitBar(total,size,color,maxT));
+}
+const ribbons=(a,b,size,unit)=>h("div",{class:"model"},
+  ribbonRow("Cinta roja",a,size,"a",Math.max(a,b),unit),ribbonRow("Cinta azul",b,size,"b",Math.max(a,b),unit));
+/* a row of `count` rods of length `len` laid end to end */
+function rodRow(len,count,color,cap,o){
+  o=o||{};
+  const row=h("div",{class:"rr"});row.style.width=(len*count/cap*100)+"%";
+  for(let i=1;i<=count;i++){
+    const r=h("div",{class:"pc "+color});r.style.flex=len+" 1 0%";
+    if(o.cells)for(let k=0;k<len;k++)r.append(h("i"));
+    if(o.labels)r.append(h("span",{text:len*i}));
+    row.append(r);
+  }
+  return row;
+}
+function rodsModel(a,b,na,nb,cap,o){
+  return h("div",{class:"model"},
+    h("div",null,h("div",{class:"rl"},h("b",{text:"Regletas rojas de "+a}),h("span",{text:na+" × "+a+" = "+na*a})),rodRow(a,na,"a",cap,o)),
+    h("div",null,h("div",{class:"rl"},h("b",{text:"Regletas azules de "+b}),h("span",{text:nb+" × "+b+" = "+nb*b})),rodRow(b,nb,"b",cap,o)));
+}
+/* bar split into n equal parts, each labelled */
+function partsBar(name,total,n,label,color,maxT,unit){
+  const bar=h("div",{class:"pbar"});bar.style.width=(total/maxT*100)+"%";
+  for(let i=0;i<n;i++)bar.append(h("div",{class:"pp "+color,text:label}));
+  return h("div",null,h("div",{class:"rl"},h("b",{text:name}),h("span",{text:total+(unit?" "+unit:"")})),bar);
+}
+
+/* ---------- hints and explanations ---------- */
+const hintMCD=(a,b)=>h("div",{class:"hint"},line("Divisores de "+a+": "+divs(a).join(", ")),line("Divisores de "+b+": "+divs(b).join(", ")),line("Busca el mayor que está en las dos listas."));
+const hintMCM=(a,b)=>{const l=lcm(a,b);return h("div",{class:"hint"},
+  line("Múltiplos de "+a+": "+mults(a,l/a+1).join(", ")),line("Múltiplos de "+b+": "+mults(b,l/b+1).join(", ")),line("Busca el primer número que está en las dos listas."));};
+const explMCD=(a,b)=>{const g=gcd(a,b),c=divs(g);return h("div",null,
+  line("Divisores de "+a+": "+divs(a).join(", ")),line("Divisores de "+b+": "+divs(b).join(", ")),
+  line("Divisores comunes: "+c.join(", ")+". El mayor: "+g+"."));};
+const explMCM=(a,b)=>{const l=lcm(a,b);return h("div",null,
+  line("Múltiplos de "+a+": "+mults(a,l/a).join(", ")+"…"),line("Múltiplos de "+b+": "+mults(b,l/b).join(", ")+"…"),
+  line("El primero que está en las dos listas: "+l+"."));};
+function explFactors(a,b,kind){
+  const fa=factor(a),fb=factor(b);
+  const ps=(kind==="mcd"?Object.keys(fa).filter(p=>fb[p]):uniq(Object.keys(fa).concat(Object.keys(fb)))).map(Number).sort((x,y)=>x-y);
+  const f={};ps.forEach(p=>{f[p]=kind==="mcd"?Math.min(fa[p],fb[p]):Math.max(fa[p]||0,fb[p]||0);});
+  return h("div",null,line(a+" = "+fmtF(fa)),line(b+" = "+fmtF(fb)),
+    line((kind==="mcd"?"Factores comunes con el menor exponente: ":"Todos los factores con el mayor exponente: ")+fmtF(f)+" = "+prodF(f)));
+}
+
+/* ---------- question builders ---------- */
+const choiceQ=o=>Object.assign({type:"choice"},o,{options:shuffle(o.options)});
+function numChoice(o,c,cands,okf){
+  const f=x=>o.unit?x+" "+o.unit:String(x);
+  return choiceQ(Object.assign({},o,{options:numOpts(c,cands,okf).map(f),correct:f(c)}));
+}
+
+/* 1 · concreto: cintas */
+function qCintas(u){
+  const [a,b]=fresh(u,()=>pairMCD(36,{dmin:2,dmax:9})),g=gcd(a,b);
+  return{type:"cintas",label:"Concreto · Cintas",a,b,g,rev:"MCD("+a+", "+b+") = "+g,
+    explain:()=>h("div",null,ribbons(a,b,g),line(a+" = "+a/g+" × "+g+" y "+b+" = "+b/g+" × "+g+". MCD("+a+", "+b+") = "+g+"."))};
+}
+/* 1 · concreto: torres de regletas */
+function qTorres(u){
+  const [a,b]=fresh(u,()=>pairMCM(30,2,9)),l=lcm(a,b);
+  return{type:"torres",label:"Concreto · Regletas",a,b,l,rev:"MCM("+a+", "+b+") = "+l,
+    explain:()=>h("div",null,rodsModel(a,b,l/a,l/b,l,{labels:true}),line(l/a+" × "+a+" = "+l+" y "+l/b+" × "+b+" = "+l+". MCM("+a+", "+b+") = "+l+"."))};
+}
+/* 2 · pictórico MCD */
+function qPD1(u){
+  const [a,b]=fresh(u,()=>pairMCD(36,{dmin:2,dmax:9})),g=gcd(a,b);
+  const cands=divs(g).filter(x=>x!==g).concat([a/g,b/g],divs(a).filter(x=>b%x!==0));
+  return numChoice({label:"Modelo de barras",unit:"cm",
+    q:"Las dos cintas están cortadas en trozos iguales, del mayor tamaño posible. ¿Cuánto mide cada trozo?",
+    model:()=>ribbons(a,b,g),
+    explain:()=>h("div",null,line(a+" ÷ "+g+" = "+a/g+" trozos y "+b+" ÷ "+g+" = "+b/g+" trozos."),
+      line(a/g+" y "+b/g+" ya no se pueden cortar más en partes iguales, así que no hay trozos mayores. MCD = "+g+".")),
+    rev:"MCD("+a+", "+b+") = "+g},g,cands,x=>x!==g);
+}
+function qPD2(u){
+  const [a,b]=fresh(u,()=>pairMCD(36,{dmin:2,dmax:9})),g=gcd(a,b),n1=a/g,n2=b/g;
+  const cands=divs(g).filter(c=>c!==g).map(c=>[a/c,b/c]).concat([[n2,n1],[n1+1,n2],[n1,n2+1],[n1*2,n2*2]]);
+  const f=p=>p[0]+" y "+p[1];const ops=pairOpts([n1,n2],cands.filter(p=>p[0]!==n1||p[1]!==n2),f);
+  return choiceQ({label:"Modelo de barras",q:"Las dos cintas se cortan en trozos iguales, lo más largos posible. ¿Cuántos trozos salen de la cinta roja y de la azul?",
+    model:()=>h("div",{class:"model"},ribbonRow("Cinta roja",a,a,"a",Math.max(a,b)),ribbonRow("Cinta azul",b,b,"b",Math.max(a,b))),
+    options:ops,correct:f([n1,n2]),
+    explain:()=>h("div",null,ribbons(a,b,g),line(a+" ÷ "+g+" = "+n1+" y "+b+" ÷ "+g+" = "+n2+".")),
+    rev:"MCD("+a+", "+b+") = "+g+" → "+n1+" y "+n2+" trozos"});
+}
+function qPD3(u){
+  let a,b,k;
+  for(let t=0;t<200;t++){[a,b]=fresh(u,()=>pairMCD(36,{dmin:2,dmax:9}));k=ri(2,9);if(k<Math.min(a,b)&&(a%k||b%k))break;}
+  if(!(a%k||b%k)){k=Math.min(a,b)-1;}
+  const ra=a%k,rb=b%k,f=p=>p[0]+" cm y "+p[1]+" cm";
+  const cands=[[rb,ra],[ra+1,rb],[ra,rb+1],[k-ra,rb],[ra,k-rb],[0,rb],[ra,0]].filter(p=>p[0]!==ra||p[1]!==rb);
+  return choiceQ({label:"Modelo de barras",q:"Las cintas se han cortado en trozos de "+k+" cm. ¿Cuánto sobra en la cinta roja y en la azul?",
+    model:()=>ribbons(a,b,k),options:pairOpts([ra,rb],cands,f),correct:f([ra,rb]),
+    explain:()=>h("div",null,line(a+" = "+Math.floor(a/k)+" × "+k+" + "+ra+" y "+b+" = "+Math.floor(b/k)+" × "+k+" + "+rb+"."),
+      line("Los trozos rayados son lo que sobra.")),
+    rev:"Con trozos de "+k+" cm sobran "+ra+" cm y "+rb+" cm"});
+}
+/* 2 · pictórico MCM */
+function qPM1(u){
+  const [a,b]=fresh(u,()=>pairMCM(30,3,9)),l=lcm(a,b),na=l/a+1,nb=l/b+1,cap=Math.max(a*na,b*nb);
+  const cands=[a*b,2*l,a+b,l+a,l+b,l-a,l-b,Math.max(a,b)*2,Math.min(a,b)*3];
+  return numChoice({label:"Modelo de barras",
+    q:"Dos filas de regletas, una roja de "+a+" y otra azul de "+b+", empiezan en el mismo punto. Cada regleta muestra hasta dónde llega. ¿En qué número coinciden por primera vez?",
+    model:()=>rodsModel(a,b,na,nb,cap,{labels:true}),
+    explain:()=>h("div",null,explMCM(a,b)),rev:"MCM("+a+", "+b+") = "+l},l,cands,x=>x!==l&&!(x%a===0&&x%b===0&&x<l));
+}
+function qPM2(u){
+  const [a,b]=fresh(u,()=>pairMCM(36,2,9)),l=lcm(a,b),na=l/a,nb=l/b;
+  const model=()=>rodsModel(a,b,na,nb,l,{cells:true});
+  const rev="MCM("+a+", "+b+") = "+l;
+  const expl=()=>h("div",null,line("Fila roja: "+na+" × "+a+" = "+l+". Fila azul: "+nb+" × "+b+" = "+l+"."),line("Es la fila más corta en la que las dos miden lo mismo: MCM = "+l+"."));
+  if(Math.random()<.5){
+    const f=p=>p[0]+" y "+p[1];
+    const cands=[[nb,na],[na+1,nb],[na,nb+1],[a,b],[na*2,nb*2]].filter(p=>p[0]!==na||p[1]!==nb);
+    return choiceQ({label:"Modelo de barras",q:"Las dos filas miden lo mismo. ¿Cuántas regletas hay en la fila roja y en la azul?",
+      model,options:pairOpts([na,nb],cands,f),correct:f([na,nb]),explain:expl,rev});
+  }
+  return numChoice({label:"Modelo de barras",unit:"",q:"Las dos filas miden lo mismo, y es la menor longitud posible. ¿Cuánto mide cada fila?",model,explain:expl,rev},
+    l,[a*b,2*l,a+b,l+a,l-a,l-b],x=>x!==l);
+}
+/* 3 · abstracto */
+function qN1(u){
+  const [a,b]=fresh(u,()=>pairMCD(72,{dmin:2,dmax:12})),g=gcd(a,b),rev="MCD("+a+", "+b+") = "+g;
+  if(Math.random()<.4)return numChoice({label:"Números",q:"¿Cuál es el MCD de "+a+" y "+b+"?",explain:()=>explMCD(a,b),hint:()=>hintMCD(a,b),rev},
+    g,divs(g).filter(x=>x!==g).concat([a/g,b/g,lcm(a,b),g*2]),x=>x!==g);
+  return{type:"num",label:"Números",q:"Calcula el MCD de "+a+" y "+b+".",answer:g,explain:()=>explMCD(a,b),hint:()=>hintMCD(a,b),rev};
+}
+function qN2(u){
+  const [a,b]=fresh(u,()=>pairMCM(90,2,12)),l=lcm(a,b),rev="MCM("+a+", "+b+") = "+l;
+  if(Math.random()<.4)return numChoice({label:"Números",q:"¿Cuál es el MCM de "+a+" y "+b+"?",explain:()=>explMCM(a,b),hint:()=>hintMCM(a,b),rev},
+    l,[a*b,2*l,gcd(a,b),a+b,l+a,l-b],x=>x!==l);
+  return{type:"num",label:"Números",q:"Calcula el MCM de "+a+" y "+b+".",answer:l,explain:()=>explMCM(a,b),hint:()=>hintMCM(a,b),rev};
+}
+function qN3(u){
+  const [a,b]=fresh(u,()=>pairMCM(60,2,12)),l=lcm(a,b),c=l*ri(1,3);
+  const cm=x=>x%a===0&&x%b===0;
+  const cands=[];for(let k=1;k<=12;k++){cands.push(a*k,b*k);}cands.push(a+b,a*b+1);
+  return numChoice({label:"Números",q:"¿Cuál de estos números es múltiplo de "+a+" y de "+b+" a la vez?",
+    explain:()=>h("div",null,line(c+" = "+a+" × "+c/a+" y "+c+" = "+b+" × "+c/b+"."),line("Es un múltiplo común. El menor de todos es el MCM: "+l+".")),
+    hint:()=>hintMCM(a,b),rev:"Múltiplo común de "+a+" y "+b+": "+c},c,cands,x=>!cm(x));
+}
+function qN4(u){
+  const [a,b]=fresh(u,()=>pairMCD(60,{dmin:2,dmax:12})),g=gcd(a,b);
+  const commons=divs(g).filter(x=>x>1),c=commons[rnd(commons.length)];
+  const cm=x=>a%x===0&&b%x===0;
+  const cands=divs(a).concat(divs(b)).filter(x=>x>1).concat([g+1,g*2]);
+  return numChoice({label:"Números",q:"¿Cuál de estos números divide a "+a+" y a "+b+" a la vez?",
+    explain:()=>h("div",null,line(a+" ÷ "+c+" = "+a/c+" y "+b+" ÷ "+c+" = "+b/c+", sin resto."),line("Es un divisor común. El mayor de todos es el MCD: "+g+".")),
+    hint:()=>hintMCD(a,b),rev:"Divisor común de "+a+" y "+b+": "+c},c,cands,x=>!cm(x));
+}
+function qN5(u){
+  if(Math.random()<.5){
+    const n=ri(3,12),k=ri(5,7),miss=ri(2,k-2),list=mults(n,k);
+    const txt=list.map((v,i)=>i===miss?"___":v).join(", ");
+    return{type:"num",label:"Múltiplos",q:"Completa los múltiplos de "+n+": "+txt,answer:list[miss],explain:()=>line("Múltiplos de "+n+": "+list.join(", ")+"…"),
+      rev:"Múltiplos de "+n+": "+list.join(", ")};
+  }
+  const n=pickN([12,18,20,24,28,30,36,40,42,48],1)[0],d=divs(n),miss=ri(1,d.length-2);
+  const txt=d.map((v,i)=>i===miss?"___":v).join(", ");
+  return{type:"num",label:"Divisores",q:"Completa los divisores de "+n+": "+txt,answer:d[miss],explain:()=>line("Divisores de "+n+": "+d.join(", ")),
+    rev:"Divisores de "+n+": "+d.join(", ")};
+}
+/* factores primos */
+const FPOOL=[12,18,20,24,28,30,36,40,45,48,50,54,60,63,72,75,80,84,90,100];
+function qF1(u){
+  const fp=FPOOL.filter(x=>!u.has("n"+x)),n=fp.length?fp[rnd(fp.length)]:FPOOL[rnd(FPOOL.length)];u.add("n"+n);
+  const f=factor(n),right=fmtF(f),bad=new Set([right]);
+  const muts=[];
+  Object.keys(f).forEach(p=>{
+    const up=Object.assign({},f);up[p]++;muts.push(up);
+    const dn=Object.assign({},f);dn[p]--;if(!dn[p])delete dn[p];if(Object.keys(dn).length)muts.push(dn);
+    [2,3,5,7].filter(q=>q!==+p&&!f[q]).forEach(q=>{const sw=Object.assign({},f);sw[q]=sw[p];delete sw[p];muts.push(sw);});
+  });
+  const wrong=[];for(const m of shuffle(muts)){const s=fmtF(m);if(!bad.has(s)&&prodF(m)!==n){bad.add(s);wrong.push(s);if(wrong.length===3)break;}}
+  const ladder=[];const ff=factor(n);Object.keys(ff).map(Number).sort((a,b)=>a-b).forEach(p=>{for(let i=0;i<ff[p];i++)ladder.push(p);});
+  return choiceQ({label:"Factores primos",q:"Descompón "+n+" en factores primos.",options:[right].concat(wrong),correct:right,
+    explain:()=>line(n+" = "+ladder.join(" × ")+" = "+right),rev:n+" = "+right});
+}
+function qFpair(u,kind){
+  const [a,b]=fresh(u,()=>{for(;;){const x=FPOOL[rnd(FPOOL.length)],y=FPOOL[rnd(FPOOL.length)];if(x!==y&&gcd(x,y)>1)return [x,y];}});
+  const ans=kind==="mcd"?gcd(a,b):lcm(a,b),NN=kind.toUpperCase();
+  return{type:"num",label:"Factores primos",
+    q:"Calcula el "+NN+" de "+a+" y "+b+" con sus factores primos.",
+    model:()=>h("div",{class:"model"},h("p",{class:"big-eq",text:a+" = "+fmtF(factor(a))}),h("p",{class:"big-eq",text:b+" = "+fmtF(factor(b))})),
+    answer:ans,explain:()=>explFactors(a,b,kind),
+    hint:()=>h("div",{class:"hint"},line(kind==="mcd"?"Para el MCD: factores comunes, con el menor exponente.":"Para el MCM: factores comunes y no comunes, con el mayor exponente.")),
+    rev:NN+"("+a+", "+b+") = "+ans};
+}
+const qF2=u=>qFpair(u,"mcd"),qF3=u=>qFpair(u,"mcm");
+
+/* problemas */
+const WP=[
+ {id:"cinta",kind:"mcd",size:true,unit:"cm",names:["Cinta roja","Cinta azul"],pair:()=>pairMCD(48,{dmin:2,dmax:12}),
+  text:(a,b)=>{const n=NAMES[rnd(NAMES.length)];return n+" tiene una cinta roja de "+a+" cm y una cinta azul de "+b+" cm. Quiere cortarlas en trozos iguales, lo más largos posible y sin que sobre nada. ¿Cuánto mide cada trozo?";},
+  why:"Cortar en trozos iguales, lo más grandes posible, sin que sobre nada: es un MCD.",note:(a,b,g)=>a+" = "+a/g+" × "+g+" y "+b+" = "+b/g+" × "+g},
+ {id:"baldosa",kind:"mcd",size:true,unit:"dm",names:["Largo de la sala","Ancho de la sala"],pair:()=>pairMCD(48,{dmin:2,dmax:12}),
+  text:(a,b)=>"Una sala rectangular mide "+a+" dm de largo y "+b+" dm de ancho. Se quiere cubrir con baldosas cuadradas lo más grandes posible, sin cortar ninguna. ¿Cuánto mide el lado de cada baldosa?",
+  why:"El lado de la baldosa tiene que caber un número exacto de veces en el largo y en el ancho, y ser el mayor posible: es un MCD.",note:(a,b,g)=>"Caben "+a/g+" baldosas a lo largo y "+b/g+" a lo ancho"},
+ {id:"caramelo",kind:"mcd",size:false,unit:"bolsitas",names:["Caramelos de fresa","Caramelos de limón"],pair:()=>pairMCD(48,{dmin:2,dmax:12}),
+  text:(a,b)=>"En una bolsa hay "+a+" caramelos de fresa y "+b+" de limón. Se quieren preparar bolsitas iguales, con caramelos de los dos sabores, sin que sobre ninguno y haciendo el mayor número de bolsitas posible. ¿Cuántas bolsitas se preparan?",
+  why:"Repartir todo en grupos iguales y hacer el mayor número de grupos posible: es un MCD.",note:(a,b,g)=>"Cada bolsita lleva "+a/g+" de fresa y "+b/g+" de limón"},
+ {id:"equipo",kind:"mcd",size:false,unit:"equipos",names:["Niños","Niñas"],pair:()=>pairMCD(48,{dmin:2,dmax:12}),
+  text:(a,b)=>"En una clase hay "+a+" niños y "+b+" niñas. Se forman equipos iguales, con los mismos niños y las mismas niñas en todos, y el mayor número de equipos posible, sin dejar a nadie fuera. ¿Cuántos equipos se forman?",
+  why:"Formar grupos iguales con todos los niños y todas las niñas, y el mayor número de grupos: es un MCD.",note:(a,b,g)=>"Cada equipo tiene "+a/g+" niños y "+b/g+" niñas"},
+ {id:"bus",kind:"mcm",unit:"minutos",names:["Autobús rojo","Autobús azul"],pair:()=>pairMCM(72,3,12),
+  text:(a,b)=>"Dos autobuses salen juntos de la parada. Uno vuelve a pasar cada "+a+" minutos y el otro cada "+b+" minutos. ¿Cuántos minutos pasan hasta que los dos vuelven a coincidir en la parada?",
+  why:"Algo que se repite cada cierto tiempo y queremos saber cuándo coincide por primera vez: es un MCM."},
+ {id:"luz",kind:"mcm",unit:"segundos",names:["Luz roja","Luz azul"],pair:()=>pairMCM(72,3,12),
+  text:(a,b)=>"Una luz roja parpadea cada "+a+" segundos y una luz azul cada "+b+" segundos. Se encienden las dos a la vez. ¿Cuántos segundos pasan hasta que vuelven a encenderse a la vez?",
+  why:"Dos cosas que se repiten y queremos el primer momento en que coinciden: es un MCM."},
+ {id:"piscina",kind:"mcm",unit:"días",names:["Primera persona","Segunda persona"],pair:()=>pairMCM(72,3,12),
+  text:(a,b)=>{const [n,m]=twoNames();return n+" va a la piscina cada "+a+" días y "+m+" cada "+b+" días. Hoy han coincidido. ¿Dentro de cuántos días volverán a coincidir?";},
+  why:"Dos rutinas que se repiten y queremos el primer día en que coinciden: es un MCM."},
+ {id:"torre",kind:"mcm",unit:"cm",names:["Torre roja","Torre azul"],pair:()=>pairMCM(72,3,12),
+  text:(a,b)=>"Se construye una torre con cajas de "+a+" cm de alto y otra con cajas de "+b+" cm. Las dos torres deben tener la misma altura. ¿Cuál es la menor altura posible?",
+  why:"Buscamos la menor longitud que es múltiplo de las dos alturas: es un MCM."},
+ {id:"pack",kind:"mcm",unit:"lápices",names:["Cajas de lápices","Packs de gomas"],pair:()=>pairMCM(72,3,12),
+  text:(a,b)=>"Los lápices se venden en cajas de "+a+" y las gomas en packs de "+b+". Se quiere tener el mismo número de lápices que de gomas, comprando lo menos posible. ¿Cuántos lápices habrá?",
+  why:"Buscamos el menor número que es múltiplo de las dos cantidades: es un MCM."}
+];
+function wpModel(t,a,b,g,l){
+  if(t.kind==="mcd"){
+    const mx=Math.max(a,b);
+    const bars=t.size
+      ?[partsBar(t.names[0],a,a/g,g,"a",mx),partsBar(t.names[1],b,b/g,g,"b",mx)]
+      :[partsBar(t.names[0],a,g,a/g,"a",mx),partsBar(t.names[1],b,g,b/g,"b",mx)];
+    return h("div",null,h("div",{class:"model"},bars),line(t.note(a,b,g)+". MCD("+a+", "+b+") = "+g+"."));
+  }
+  return h("div",null,rodsModel(a,b,l/a,l/b,l,{labels:l/a<=10&&l/b<=10}),line(l/a+" × "+a+" = "+l+" y "+l/b+" × "+b+" = "+l+". MCM("+a+", "+b+") = "+l+"."));
+}
+function pickTpl(kind,u){
+  let pool=WP.filter(t=>t.kind===kind&&!u.has("t"+t.id));
+  if(!pool.length)pool=WP.filter(t=>t.kind===kind);
+  const t=pool[rnd(pool.length)];u.add("t"+t.id);return t;
+}
+function qProb(kind,u){
+  const t=pickTpl(kind,u),[a,b]=fresh(u,t.pair),g=gcd(a,b),l=lcm(a,b),ans=kind==="mcd"?g:l;
+  const base={label:"Problema",q:t.text(a,b),explain:()=>h("div",null,line(t.why),wpModel(t,a,b,g,l)),
+    hint:()=>kind==="mcd"?hintMCD(a,b):hintMCM(a,b),rev:t.text(a,b)+" → "+ans+" "+t.unit};
+  if(Math.random()<.5)return Object.assign({type:"num",answer:ans,unit:t.unit},base);
+  const cands=kind==="mcd"?[a,b,l,g*2,a-g,b-g,g+1,g-1]:[a*b,g,a+b,2*l,l+a,l-b,l/2];
+  return numChoice(Object.assign({unit:t.unit},base),ans,cands,x=>x!==ans);
+}
+function qDet(u){
+  const kind=Math.random()<.5?"mcd":"mcm",t=pickTpl(kind,u),[a,b]=fresh(u,t.pair),g=gcd(a,b),l=lcm(a,b);
+  const MCD="MCD: máximo común divisor",MCM="MCM: mínimo común múltiplo";
+  return{type:"choice",label:"¿MCD o MCM?",problem:t.text(a,b),q:"¿Qué hay que calcular para resolverlo?",
+    options:shuffle([MCD,MCM]),correct:kind==="mcd"?MCD:MCM,
+    explain:()=>h("div",null,line(t.why),wpModel(t,a,b,g,l)),
+    rev:t.why};
+}
+/* frases clave: standard definitions (check them against the school's wording) */
+const S=[
+{id:"f1",t:"El máximo común divisor (MCD) es el mayor número que divide a dos o más números.",ch:"El máximo común divisor (MCD) | es el mayor número | que divide a dos o más números.",gaps:["mayor","divide","máximo"],sw:[["mayor número","menor número"],["divide a","es múltiplo de"],["máximo común divisor","mínimo común divisor"]]},
+{id:"f2",t:"El mínimo común múltiplo (MCM) es el menor múltiplo común de dos o más números, distinto de cero.",ch:"El mínimo común múltiplo (MCM) | es el menor múltiplo común | de dos o más números, distinto de cero.",gaps:["menor","distinto de cero","mínimo"],sw:[["menor","mayor"],["mínimo común múltiplo","máximo común múltiplo"],["distinto de cero","incluido el cero"]]},
+{id:"f3",t:"Para calcular el MCD se toman los factores primos comunes con el menor exponente.",ch:"Para calcular el MCD | se toman los factores primos comunes | con el menor exponente.",gaps:["comunes","menor","exponente"],sw:[["menor exponente","mayor exponente"],["comunes","no comunes"],["Para calcular el MCD","Para calcular el MCM"]]},
+{id:"f4",t:"Para calcular el MCM se toman los factores primos comunes y no comunes con el mayor exponente.",ch:"Para calcular el MCM | se toman los factores primos | comunes y no comunes | con el mayor exponente.",gaps:["comunes y no comunes","mayor","MCM"],sw:[["mayor exponente","menor exponente"],["comunes y no comunes","solo comunes"],["Para calcular el MCM","Para calcular el MCD"]]},
+{id:"f5",t:"Un divisor de un número lo divide de forma exacta, sin resto.",ch:"Un divisor de un número | lo divide | de forma exacta, | sin resto.",gaps:["divisor","exacta","resto"],sw:[["divisor","múltiplo"],["exacta","aproximada"],["sin resto","con resto"]]},
+{id:"f6",t:"Un múltiplo de un número se obtiene multiplicándolo por 1, 2, 3, 4 y así sucesivamente.",ch:"Un múltiplo de un número | se obtiene multiplicándolo | por 1, 2, 3, 4 | y así sucesivamente.",gaps:["múltiplo","multiplicándolo","sucesivamente"],sw:[["múltiplo","divisor"],["multiplicándolo","dividiéndolo"],["1, 2, 3, 4","2, 4, 6, 8"]]},
+{id:"f7",t:"Dos números son primos entre sí si su MCD es 1.",ch:"Dos números son primos entre sí | si su MCD | es 1.",gaps:["primos entre sí","MCD","1"],sw:[["MCD es 1","MCM es 1"],["primos entre sí","pares"],["Dos números","Un número"]]},
+{id:"f8",t:"El MCD sirve para repartir en partes iguales y el MCM sirve para encontrar cuándo coinciden.",ch:"El MCD sirve para repartir | en partes iguales | y el MCM sirve para encontrar | cuándo coinciden.",gaps:["repartir","iguales","coinciden"],sw:[["El MCD sirve para repartir","El MCM sirve para repartir"],["repartir","juntar"],["coinciden","se separan"]]}
+];
+function qFr(u){
+  const pool=S.filter(s=>!u.has("s"+s.id));const s=(pool.length?pool:S)[rnd((pool.length?pool:S).length)];u.add("s"+s.id);
+  const kind=["order","gap","exact"][rnd(3)];
+  const rev=s.t;
+  if(kind==="order"){
+    const parts=s.ch.split("|").map(x=>x.trim());let sh=parts.map((t,i)=>({t,i}));
+    do{sh=shuffle(sh);}while(sh.every((x,i)=>x.i===i));
+    return{type:"order",label:"Pon la frase en orden",parts:sh,target:s.t,rev,revLabel:"Frase correcta"};
+  }
+  if(kind==="gap"){
+    const w=s.gaps[rnd(s.gaps.length)],i=s.t.indexOf(w);
+    return{type:"gap",label:"Rellena el hueco",before:s.t.slice(0,i),after:s.t.slice(i+w.length),answer:w,rev,revLabel:"Frase correcta"};
+  }
+  const wrong=[],used=new Set([s.t]);
+  for(const [x,y] of shuffle(s.sw)){const v=s.t.replace(x,y);if(!used.has(v)){used.add(v);wrong.push(v);if(wrong.length===3)break;}}
+  return choiceQ({label:"La frase exacta",q:"¿Cuál de estas frases está escrita exactamente bien?",options:[s.t].concat(wrong),correct:s.t,rev,revLabel:"Frase correcta"});
+}
+
+/* ---------- rounds ---------- */
+const ROUND={
+  cintas:{n:4,gens:[qCintas]},
+  torres:{n:4,gens:[qTorres]},
+  pdib:{n:8,gens:[qPD1,qPD2,qPD3]},
+  pmcm:{n:8,gens:[qPM1,qPM2]},
+  num:{n:10,gens:[qN1,qN2,qN3,qN4,qN5]},
+  fact:{n:8,gens:[qF1,qF2,qF3]},
+  prob:{n:6,gens:[u=>qProb("mcd",u),u=>qProb("mcm",u)]},
+  det:{n:8,gens:[qDet]},
+  frases:{n:8,gens:[qFr]},
+  mix:{n:12,gens:[qPD1,qPD2,qPD3,qPM1,qPM2,qN1,qN2,qN3,qN4,qF1,qF2,qF3,u=>qProb("mcd",u),u=>qProb("mcm",u),qDet,qFr,qFr,qN5]}
+};
+function buildRound(mode){
+  const R=ROUND[mode],u=new Set(),qs=[];let bag=[];
+  for(let i=0;i<R.n;i++){if(!bag.length)bag=shuffle(R.gens);qs.push(bag.pop()(u));}
+  return{mode,qs,i:0,score:0,missed:[],answered:false};
+}
+let round=null;
+const $app=document.getElementById("app");
+
+/* ---------- menu ---------- */
+function showMenu(){
+  round=null;
+  const m=(mode,icon,t,d)=>`<button class="mode" type="button" data-mode="${mode}"><span class="ico">${icon}</span><span><span class="t">${t}</span><span class="d">${d}</span></span></button>`;
+  $app.innerHTML=`<a class="home" href="/">🏠 Home</a>
+<header class="hero"><h1>MCM y MCD con barras</h1><p class="sub">Primero tocas, luego dibujas y al final calculas. Cada partida trae números nuevos.</p></header>
+<h2 class="grp">Empieza aquí</h2>
+${m("learn","📖","Cómo funciona","El MCD y el MCM explicados con barras")}
+<h2 class="grp">1 · Concreto: toca y mueve</h2>
+${m("cintas","🎀","Cintas","Corta dos cintas en trozos iguales, lo más largos posible (MCD)")}
+${m("torres","🧱","Regletas","Construye dos filas que midan lo mismo con pocas regletas (MCM)")}
+<h2 class="grp">2 · Pictórico: mira el modelo de barras</h2>
+${m("pdib","📊","Barras del MCD","Trozos, cortes y lo que sobra")}
+${m("pmcm","📏","Barras del MCM","Filas de regletas que se encuentran")}
+<h2 class="grp">3 · Abstracto: calcula con números</h2>
+${m("num","🔢","Números","Divisores, múltiplos, MCD y MCM")}
+${m("fact","🧮","Factores primos","Descomponer y calcular con exponentes")}
+<h2 class="grp">Problemas</h2>
+${m("prob","📝","Problemas con barras","Cintas, baldosas, autobuses y más")}
+${m("det","🕵️","¿MCD o MCM?","Decide qué hay que calcular")}
+<h2 class="grp">Frases para recordar</h2>
+${m("frases","🧩","Frases clave","Ordena, rellena y elige la frase exacta")}
+<h2 class="grp">Todo junto</h2>
+${m("mix","🏆","Mezcla","12 preguntas de todo tipo")}`;
+  $app.querySelectorAll("[data-mode]").forEach(b=>{b.onclick=()=>start(b.dataset.mode);});
+  window.scrollTo(0,0);
+}
+function start(mode){
+  if(mode==="learn")return showLearn();
+  round=buildRound(mode);showQ();
+}
+
+/* ---------- question screen ---------- */
+function showQ(){
+  const r=round,q=r.qs[r.i];r.answered=false;
+  const star=h("span",{class:"score",text:"⭐ "+r.score});
+  const bar=h("div",{class:"bar"});bar.style.width=(r.i/r.qs.length*100)+"%";
+  const top=h("div",{class:"top"},
+    h("button",{class:"back",type:"button",text:"← Menú",onclick:showMenu}),
+    h("div",{class:"prog","aria-hidden":"true"},bar),
+    h("span",{class:"count",text:(r.i+1)+" / "+r.qs.length}),star);
+  const card=h("section",{class:"card"});
+  const fb=h("div",{role:"status","aria-live":"polite"});
+  const finish=(ok,info)=>{
+    info=info||{};
+    if(r.answered)return;r.answered=true;
+    if(ok&&!info.hint&&!info.noStar){r.score++;star.textContent="⭐ "+r.score;}
+    if(!ok||info.noStar)r.missed.push(q.rev);
+    const last=r.i===r.qs.length-1;
+    const title=info.title||(ok?(info.hint?"Bien, pero has usado la pista: sin estrella.":"¡Correcto! ⭐"):"No era esa.");
+    const box=h("div",{class:"fb "+(ok?"good":"bad")},
+      h("strong",{text:title}),
+      (!ok&&info.answer!=null)?h("div",{class:"ans"},"La respuesta: ",h("b",{text:String(info.answer)})):null,
+      q.explain?h("div",{class:"exp"},h("span",{class:"lab",text:"Así se ve"}),q.explain()):null,
+      (q.rev&&q.revLabel)?h("div",{class:"src"},h("span",{class:"lab",text:q.revLabel||"Recuerda"}),h("span",{text:q.rev})):null,
+      h("button",{class:"btn",type:"button",text:last?"Ver resultados":"Siguiente →",onclick:()=>{r.i++;if(last)showResults();else showQ();}}));
+    fb.replaceChildren(box);
+    box.scrollIntoView({block:"nearest"});
+  };
+  ({choice:rChoice,num:rNum,gap:rGap,order:rOrder,cintas:rCintas,torres:rTorres})[q.type](q,finish,card);
+  $app.replaceChildren(top,card,fb);
+  window.scrollTo(0,0);
+  const first=card.querySelector("input");if(first)first.focus({preventScroll:true});
+}
+const head=q=>[h("div",{class:"qtype",text:q.label}),q.lead?h("p",{class:"lead",text:q.lead}):null];
+function hintButton(q,card,state){
+  if(!q.hint)return null;
+  const b=h("button",{class:"btn ghost",type:"button",text:"Pista"});
+  b.onclick=()=>{if(state.hinted)return;state.hinted=true;b.disabled=true;card.append(q.hint());};
+  return b;
+}
+
+function rChoice(q,finish,card){
+  const st={hinted:false},list=h("div",{class:"opts"});
+  q.options.forEach(o=>{
+    const b=h("button",{class:"opt",type:"button",text:o});
+    b.onclick=()=>{
+      [...list.children].forEach(x=>{x.disabled=true;if(x.textContent===q.correct)x.classList.add("good");});
+      if(o!==q.correct)b.classList.add("bad");
+      finish(o===q.correct,{hint:st.hinted});
+    };
+    list.append(b);
+  });
+  add(card,head(q),q.problem?h("p",{class:"prob",text:q.problem}):null,h("p",{class:"q",text:q.q}),q.model?q.model():null,list);
+  const hb=hintButton(q,card,st);if(hb)add(card,h("div",{class:"actions"},hb));
+}
+function rNum(q,finish,card){
+  const st={hinted:false};
+  add(card,head(q),h("p",{class:"q",text:q.q}),q.model?q.model():null);
+  const inp=h("input",{class:"txt",id:"num-answer",type:"text",inputmode:"numeric",autocomplete:"off",placeholder:q.unit?"Escribe el número ("+q.unit+")":"Escribe el número","aria-label":"Respuesta"});
+  const check=h("button",{class:"btn",type:"button",text:"Comprobar"});
+  const hb=hintButton(q,card,st);
+  const submit=()=>{
+    const v=parseInt(inp.value.trim(),10);
+    if(isNaN(v)){inp.focus();return;}
+    const ok=v===q.answer;inp.disabled=true;check.disabled=true;if(hb)hb.disabled=true;
+    inp.classList.add(ok?"good":"bad");
+    finish(ok,{hint:st.hinted,answer:q.answer+(q.unit?" "+q.unit:"")});
+  };
+  check.onclick=submit;
+  inp.addEventListener("keydown",e=>{if(e.key==="Enter")submit();});
+  add(card,inp,h("div",{class:"actions"},hb,check));
+}
+function rGap(q,finish,card){
+  add(card,head(q),h("p",{class:"q sentence"},q.before,h("span",{class:"blank"}),q.after),
+    h("p",{class:"note",text:"Escribe las palabras que faltan tal como son. Se admite sin tildes."}));
+  const inp=h("input",{class:"txt",id:"gap-answer",type:"text",autocomplete:"off",autocapitalize:"none",spellcheck:"false",placeholder:"Palabras que faltan","aria-label":"Palabras que faltan"});
+  const note=h("p",{class:"note"});
+  const hintBtn=h("button",{class:"btn ghost",type:"button",text:"Pista"});
+  const check=h("button",{class:"btn",type:"button",text:"Comprobar"});
+  let hinted=false;
+  hintBtn.onclick=()=>{hinted=true;const w=q.answer,words=w.split(" ").length;
+    note.textContent="Empieza por «"+w[0]+"». "+words+(words===1?" palabra":" palabras")+", "+w.replace(/[^A-Za-zÁÉÍÓÚáéíóúñÑ0-9]/g,"").length+" letras.";inp.focus();};
+  const submit=()=>{
+    const v=norm(inp.value);if(!v){inp.focus();return;}
+    const ok=v===norm(q.answer);
+    inp.disabled=true;check.disabled=true;hintBtn.disabled=true;inp.classList.add(ok?"good":"bad");
+    const bl=card.querySelector(".blank");bl.textContent=q.answer;bl.classList.add(ok?"good":"bad");
+    finish(ok,{hint:hinted,answer:q.answer});
+  };
+  check.onclick=submit;
+  inp.addEventListener("keydown",e=>{if(e.key==="Enter")submit();});
+  add(card,inp,note,h("div",{class:"actions"},hintBtn,check));
+}
+function rOrder(q,finish,card){
+  add(card,head(q),h("p",{class:"q",text:"Toca los trozos en el orden correcto para formar la frase."}));
+  let ans=[],bank=q.parts.slice(),locked=false;
+  const slot=h("div",{class:"slot"}),bankEl=h("div",{class:"bank"});
+  const check=h("button",{class:"btn",type:"button",text:"Comprobar"});
+  const reset=h("button",{class:"btn ghost",type:"button",text:"Empezar otra vez"});
+  const chip=(c,fn,cls)=>h("button",{class:"chip"+(cls?" "+cls:""),type:"button",text:c.t,disabled:locked,onclick:fn});
+  function draw(cls){
+    slot.className="slot"+(cls?" "+cls:"");
+    slot.replaceChildren(...(ans.length?ans.map(c=>chip(c,()=>{ans=ans.filter(x=>x!==c);bank.push(c);draw();},"in")):[h("span",{class:"ph",text:"Tu frase va aquí"})]));
+    bankEl.replaceChildren(...bank.map(c=>chip(c,()=>{bank=bank.filter(x=>x!==c);ans.push(c);draw();})));
+    check.disabled=locked||ans.length!==q.parts.length;reset.disabled=locked||!ans.length;
+  }
+  check.onclick=()=>{const ok=ans.map(c=>c.t).join(" ")===q.target;locked=true;draw(ok?"good":"bad");finish(ok);};
+  reset.onclick=()=>{bank=q.parts.slice();ans=[];draw();};
+  add(card,slot,bankEl,h("div",{class:"actions"},reset,check));
+  draw();
+}
+
+/* concreto: cintas — choose the piece length, see what is left over */
+function rCintas(q,finish,card){
+  const {a,b,g}=q,top=Math.min(a,b);let L=1,wrong=0,locked=false;
+  add(card,head(q),h("p",{class:"q",text:"Corta las dos cintas en trozos iguales. Busca el trozo más grande que no deja sobrar nada en ninguna cinta."}));
+  const view=h("div"),sums=h("div"),val=h("div",{class:"stepval"}),note=h("p",{class:"note"});
+  const minus=h("button",{class:"btn ghost",type:"button",text:"−","aria-label":"Trozo más corto"});
+  const plus=h("button",{class:"btn ghost",type:"button",text:"+","aria-label":"Trozo más largo"});
+  const ok=h("button",{class:"btn",type:"button",text:"Este es el trozo más grande que no deja sobrar"});
+  const sum=(name,t)=>{const n=Math.floor(t/L),r=t%L;return h("p",{class:"sumline",text:name+": "+n+(n===1?" trozo":" trozos")+" de "+L+" cm"+(r?" y sobran "+r+" cm.":". No sobra nada ✔")});};
+  function draw(){
+    view.replaceChildren(ribbons(a,b,L));
+    sums.replaceChildren(sum("Cinta roja",a),sum("Cinta azul",b));
+    val.textContent=L+" cm";minus.disabled=locked||L<=1;plus.disabled=locked||L>=top;ok.disabled=locked;
+  }
+  minus.onclick=()=>{L--;note.textContent="";note.className="note";draw();};
+  plus.onclick=()=>{L++;note.textContent="";note.className="note";draw();};
+  ok.onclick=()=>{
+    if(a%L||b%L){wrong++;note.className="note bad";note.textContent="Con trozos de "+L+" cm sobra cinta. Prueba otro tamaño.";}
+    else if(L<g){wrong++;note.className="note bad";note.textContent="Con "+L+" cm no sobra nada, pero se pueden cortar trozos más grandes.";}
+    else{locked=true;draw();finish(wrong===0,{title:wrong===0?"¡Lo has encontrado a la primera! ⭐":"¡Encontrado! Con intentos de más no hay estrella.",noStar:wrong>0});}
+  };
+  add(card,view,h("div",{class:"stepper"},minus,val,plus),sums,note,h("div",{class:"actions"},ok));
+  draw();
+}
+/* concreto: regletas — build two rows until they are equal */
+function rTorres(q,finish,card){
+  const {a,b,l}=q,cap=l+Math.max(a,b);let na=0,nb=0,wrong=0,locked=false;
+  add(card,head(q),h("p",{class:"q",text:"Añade regletas a cada fila hasta que las dos midan lo mismo. Busca la longitud más corta posible."}));
+  const mk=(len,color,name)=>{
+    const track=h("div",{class:"track"});track.style.setProperty("--cap",cap);
+    const tot=h("span",{class:"tot"});
+    const minus=h("button",{class:"sq",type:"button",text:"−","aria-label":"Quitar una regleta de "+len});
+    const plus=h("button",{class:"sq plus",type:"button",text:"+","aria-label":"Añadir una regleta de "+len});
+    const wrap=h("div",{class:"tower"},h("div",{class:"tctl"},h("span",{class:"name",text:name+" de "+len}),minus,plus,tot),track);
+    return{len,color,track,tot,minus,plus,wrap};
+  };
+  const A=mk(a,"a","Regletas rojas"),B=mk(b,"b","Regletas azules");
+  const note=h("p",{class:"note"});
+  const ok=h("button",{class:"btn",type:"button",text:"Son iguales y es la más corta"});
+  function draw(){
+    [[A,na],[B,nb]].forEach(([T,n])=>{
+      T.track.replaceChildren(rodRow(T.len,n,T.color,cap,{cells:true}));
+      T.tot.textContent=n+" × "+T.len+" = "+n*T.len;
+      T.minus.disabled=locked||n===0;T.plus.disabled=locked||(n+1)*T.len>cap;
+    });
+    const eq=na*a>0&&na*a===nb*b;
+    A.track.classList.toggle("eq",eq);B.track.classList.toggle("eq",eq);
+    ok.disabled=locked||!eq;
+  }
+  A.minus.onclick=()=>{na--;note.textContent="";draw();};A.plus.onclick=()=>{na++;note.textContent="";draw();};
+  B.minus.onclick=()=>{nb--;note.textContent="";draw();};B.plus.onclick=()=>{nb++;note.textContent="";draw();};
+  ok.onclick=()=>{
+    if(na*a!==l){wrong++;note.className="note bad";note.textContent="Las filas son iguales, pero hay una longitud más corta. Quita regletas y prueba otra vez.";}
+    else{locked=true;draw();finish(wrong===0,{title:wrong===0?"¡Lo has encontrado a la primera! ⭐":"¡Encontrado! Con intentos de más no hay estrella.",noStar:wrong>0});}
+  };
+  add(card,A.wrap,B.wrap,h("p",{class:"note",text:"Truco: añade una regleta a la fila que va más corta."}),note,h("div",{class:"actions"},ok));
+  draw();
+}
+
+/* ---------- results and learn ---------- */
+function showResults(){
+  const r=round,n=r.qs.length,s=r.score,missed=uniq(r.missed);
+  const msg=s===n?"¡Perfecto! Todas.":s/n>=.7?"¡Muy bien!":s/n>=.4?"Buen intento. Otra partida te ayudará.":"Sigue practicando. Mira «Cómo funciona» y vuelve a probar.";
+  $app.replaceChildren(...[
+    h("section",{class:"card"},h("div",{class:"qtype",text:"Partida terminada"}),h("p",{class:"big",text:s+" / "+n}),h("p",{class:"q",text:msg})),
+    missed.length?h("section",{class:"card"},h("div",{class:"qtype",text:"Para repasar"}),...missed.map(t=>h("p",{class:"rev",text:t}))):null,
+    h("div",{class:"actions"},
+      h("button",{class:"btn",type:"button",text:"Jugar otra vez",onclick:()=>start(r.mode)}),
+      h("button",{class:"btn ghost",type:"button",text:"Menú",onclick:showMenu}))
+  ].filter(Boolean));
+  window.scrollTo(0,0);
+}
+function showLearn(){
+  const top=h("div",{class:"top"},h("button",{class:"back",type:"button",text:"← Menú",onclick:showMenu}));
+  const c1=h("section",{class:"card read"},h("h2",{text:"Tres pasos: toca, dibuja, calcula"}),
+    h("p",{text:"1 · Concreto: mueves cintas y regletas con los dedos."}),
+    h("p",{text:"2 · Pictórico: dibujas el problema con barras."}),
+    h("p",{text:"3 · Abstracto: lo resuelves solo con números."}));
+  const c2=h("section",{class:"card read"},h("h2",{text:"MCD: cortar en trozos iguales"}),
+    ribbons(12,18,6),
+    h("p",{text:"Las dos cintas se cortan en trozos iguales, lo más largos posible, sin que sobre nada."}),
+    h("p",{text:"12 = 2 trozos de 6 y 18 = 3 trozos de 6. Con 2 y 3 trozos ya no se puede cortar más grande."}),
+    h("p",{class:"big-eq",text:"MCD(12, 18) = 6"}));
+  const c3=h("section",{class:"card read"},h("h2",{text:"MCM: filas que se encuentran"}),
+    rodsModel(4,6,3,2,12,{labels:true}),
+    h("p",{text:"Una fila de regletas de 4 y otra de 6 empiezan juntas. Llegan a 4, 8, 12 y a 6, 12."}),
+    h("p",{text:"Se encuentran por primera vez en 12."}),
+    h("p",{class:"big-eq",text:"MCM(4, 6) = 12"}));
+  const c4=h("section",{class:"card read"},h("h2",{text:"¿Cuál uso?"}),
+    h("p",{text:"Si cortas o repartes en partes iguales, el resultado es más pequeño que tus números: MCD."}),
+    h("p",{text:"Si algo se repite y quieres saber cuándo coincide, el resultado es mayor que tus números: MCM."}));
+  const c5=h("section",{class:"card read"},h("h2",{text:"Con factores primos"}),
+    h("p",{text:"12 = 2² · 3 y 18 = 2 · 3²"}),
+    h("p",{text:"MCD: factores comunes con el menor exponente. 2 · 3 = 6."}),
+    h("p",{text:"MCM: todos los factores con el mayor exponente. 2² · 3² = 36."}));
+  $app.replaceChildren(top,c1,c2,c3,c4,c5,h("button",{class:"btn",type:"button",style:"width:100%",text:"Volver al menú",onclick:showMenu}));
+  window.scrollTo(0,0);
+}
+showMenu();
+</script>
+
+</body></html>
