@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Landscapes & Superlatives</title>
+<style>
+:root{
+  --bg:#fff4e0; --card:#ffffff; --ink:#2b2350; --muted:#6a6286; --line:#e8d9bd;
+  --pri:#e5502c; --on-pri:#ffffff; --sec:#5b4bdb; --sec-text:#5b4bdb; --chip:#fff8ea;
+  --good:#1b7f45; --good-bg:#e1f5e8; --bad:#c3342c; --bad-bg:#fde6e3; --focus:#5b4bdb;
+  --font:"Trebuchet MS","Segoe UI",system-ui,sans-serif; color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#1d1838; --card:#2a2350; --ink:#fff3de; --muted:#b9b1d6; --line:#443b75;
+  --pri:#ff7a5c; --on-pri:#1d1838; --sec:#8f82ff; --sec-text:#b9afff; --chip:#342b63;
+  --good:#6fd99a; --good-bg:#1f4034; --bad:#ff9b92; --bad-bg:#4a2339; --focus:#b9afff; color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.4 var(--font)}
+main{max-width:560px;margin:0 auto;padding-block:max(16px,env(safe-area-inset-top,0px)) 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,input{font-family:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+p{margin:6px 0}
+.home{display:inline-flex;align-items:center;min-height:44px;color:var(--sec-text);font-weight:800;text-decoration:none}
+.hero h1{font-size:30px;line-height:1.15;margin:6px 0 4px;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 4px}
+h2.grp{font-size:15px;margin:26px 0 2px;text-transform:uppercase;letter-spacing:.06em;color:var(--sec-text);border-bottom:2px solid var(--line);padding-bottom:6px}
+.mode{display:flex;gap:14px;align-items:center;width:100%;text-align:left;background:var(--card);color:var(--ink);border:2px solid var(--line);border-radius:18px;padding:14px 16px;margin:12px 0;cursor:pointer;font-size:17px}
+.mode:hover{border-color:var(--pri)}
+.ico{font-size:38px;flex:none}
+.t,.d{display:block}
+.t{font-weight:800;font-size:19px}
+.d{color:var(--muted);font-size:15px}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.back{min-height:44px;padding:0 14px;border:2px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);font-size:16px;font-weight:700;cursor:pointer}
+.prog{flex:1;height:10px;border-radius:99px;background:var(--line);overflow:hidden;min-width:30px}
+.bar{height:100%;background:var(--pri);border-radius:99px}
+.count{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.card{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:18px;margin-bottom:14px}
+.qtype{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--sec-text)}
+.bigpic{font-size:72px;line-height:1.1;text-align:center;margin:10px 0 0}
+.bigword{font-size:30px;font-weight:800;text-align:center;margin:10px 0 0;text-wrap:balance}
+.q{font-size:20px;font-weight:700;margin:8px 0 12px;text-wrap:pretty}
+.sentence{font-size:20px;line-height:1.8;margin:8px 0 12px}
+.blank{display:inline-block;min-width:5em;border-bottom:3px solid var(--pri);text-align:center;padding:0 6px;margin:0 2px}
+.blank.good{border-color:var(--good);color:var(--good)}
+.blank.bad{border-color:var(--bad);color:var(--bad)}
+.hint{color:var(--muted);font-weight:700}
+.opts{display:grid;gap:10px}
+.opt{display:block;width:100%;min-height:56px;text-align:left;padding:12px 16px;border:2px solid var(--line);border-radius:16px;background:var(--chip);color:var(--ink);font-size:18px;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--pri)}
+.opt:disabled{cursor:default;color:var(--ink)}
+.opt.sel{border-color:var(--sec);background:var(--card);box-shadow:0 0 0 2px var(--sec)}
+.opt.good{background:var(--good-bg);border-color:var(--good)}
+.opt.bad{background:var(--bad-bg);border-color:var(--bad)}
+.btn{min-height:56px;padding:0 22px;border:2px solid var(--pri);border-radius:16px;background:var(--pri);color:var(--on-pri);font-size:18px;font-weight:800;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn:disabled{opacity:.45;cursor:default}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.actions .btn{flex:1 1 140px}
+.slot,.bank{display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;min-width:0}
+.slot{min-height:68px;padding:10px;border:2px dashed var(--line);border-radius:16px;margin-bottom:14px}
+.slot.good{border-style:solid;border-color:var(--good);background:var(--good-bg)}
+.slot.bad{border-style:solid;border-color:var(--bad);background:var(--bad-bg)}
+.ph{color:var(--muted);align-self:center}
+.chip{min-height:48px;padding:8px 14px;border:2px solid var(--line);border-radius:14px;background:var(--chip);color:var(--ink);font-size:17px;text-align:left;cursor:pointer;max-width:100%}
+.chip.in{background:var(--card);border-color:var(--sec)}
+.chip:disabled{cursor:default;color:var(--ink)}
+.txt{width:100%;min-height:56px;padding:0 16px;border:2px solid var(--line);border-radius:16px;background:var(--chip);color:var(--ink);font-size:20px}
+.txt.good{border-color:var(--good);background:var(--good-bg)}
+.txt.bad{border-color:var(--bad);background:var(--bad-bg)}
+.fb{border-radius:18px;padding:14px 16px;border:2px solid}
+.fb.good{background:var(--good-bg);border-color:var(--good)}
+.fb.bad{background:var(--bad-bg);border-color:var(--bad)}
+.fb .ans,.fb .src{margin-top:8px}
+.lab{display:block;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.fb .btn{width:100%;margin-top:14px}
+.big{font-size:52px;font-weight:800;margin:6px 0;font-variant-numeric:tabular-nums}
+.rev{margin:10px 0;padding-top:10px;border-top:2px solid var(--line)}
+.read h2{font-size:21px;margin:4px 0 6px}
+.read h3{font-size:15px;margin:18px 0 6px;text-transform:uppercase;letter-spacing:.06em;color:var(--sec-text)}
+.read .row{display:flex;gap:12px;align-items:center;padding:8px 0;border-top:2px solid var(--line)}
+.read .row:first-of-type{border-top:0}
+.read .em{font-size:30px;width:40px;text-align:center;flex:none}
+.read .nm{font-weight:800}
+.read .es{color:var(--muted);font-size:15px}
+.read ul{margin:6px 0;padding-left:20px}
+.read li{margin:6px 0}
+.read .tbl{width:100%;border-collapse:collapse;font-size:16px}
+.read .tbl td,.read .tbl th{border:2px solid var(--line);padding:6px 8px;text-align:left}
+.read mark{background:transparent;color:var(--pri);font-weight:800}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+const rnd=n=>Math.floor(Math.random()*n);
+const shuffle=a=>{const b=a.slice();for(let i=b.length-1;i>0;i--){const j=rnd(i+1);[b[i],b[j]]=[b[j],b[i]];}return b;};
+const pick=(a,n)=>shuffle(a).slice(0,n);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const norm=s=>s.toLowerCase().replace(/[’‘]/g,"'").replace(/[.,;:!?"]/g,"").replace(/\s+/g," ").trim();
+const $=s=>document.querySelector(s);
+const app=document.getElementById('app');
+
+/* ================= DATA (all from the worksheets; Spanish words and emoji are only hints) ================= */
+const VOC=[
+ {w:'canyon',es:'cañón',e:'🏞️',g:'land'},
+ {w:'desert',es:'desierto',e:'🏜️',g:'land'},
+ {w:'glacier',es:'glaciar',e:'🧊',g:'land'},
+ {w:'mountain range',es:'cordillera',e:'⛰️',g:'land'},
+ {w:'rainforest',es:'selva tropical',e:'🌴',g:'land'},
+ {w:'volcano',es:'volcán',e:'🌋',g:'land'},
+ {w:'waterfall',es:'cascada',e:'💦',g:'land'},
+ {w:'snowstorm',es:'tormenta de nieve',e:'🌨️',g:'weather'},
+ {w:'flood',es:'inundación',e:'🌊',g:'weather'},
+ {w:'hurricane',es:'huracán',e:'🌀',g:'weather'},
+ {w:'drought',es:'sequía',e:'🥀',g:'weather'},
+ {w:'dry',es:'seco',g:'adj'},
+ {w:'wet',es:'húmedo / mojado',g:'adj'},
+ {w:'rocky',es:'rocoso',g:'adj'},
+ {w:'glacial',es:'glacial (muy frío)',g:'adj'},
+ {w:'arid',es:'árido',g:'adj'}
+];
+const LAND=VOC.filter(v=>v.g==='land').map(v=>v.w);
+
+const RULES={
+ short:'Short adjective: the + -est',
+ y:'Ends in -y: the + -iest',
+ long:'Long adjective: the most + adjective',
+ irr:'Irregular: the best / the worst'
+};
+const ADJ=[
+ {a:'long',s:'the longest',r:'short',w:['the most long','the longer']},
+ {a:'big',s:'the biggest',r:'short',w:['the bigest','the most big']},
+ {a:'high',s:'the highest',r:'short',w:['the most high','the higher']},
+ {a:'large',s:'the largest',r:'short',w:['the largeest','the most large']},
+ {a:'warm',s:'the warmest',r:'short',w:['the most warm','the warmer']},
+ {a:'wet',s:'the wettest',r:'short',w:['the wetest','the most wet']},
+ {a:'dry',s:'the driest',r:'y',w:['the dryest','the most dry']},
+ {a:'windy',s:'the windiest',r:'y',w:['the windyest','the most windy']},
+ {a:'sunny',s:'the sunniest',r:'y',w:['the sunnyest','the most sunny']},
+ {a:'rainy',s:'the rainiest',r:'y',w:['the rainyest','the most rainy']},
+ {a:'extreme',s:'the most extreme',r:'long',w:['the extremest','the extremeest']},
+ {a:'glacial',s:'the most glacial',r:'long',w:['the glacialest','the glacialer']},
+ {a:'arid',s:'the most arid',r:'long',w:['the aridest','the aridiest']},
+ {a:'active',s:'the most active',r:'long',w:['the activest','the activiest']},
+ {a:'devastating',s:'the most devastating',r:'long',w:['the devastatingest','the devastatinger']},
+ {a:'beautiful',s:'the most beautiful',r:'long',w:['the beautifulest','the beautifuller']},
+ {a:'good',s:'the best',r:'irr',w:['the goodest','the most good']},
+ {a:'bad',s:'the worst',r:'irr',w:['the baddest','the most bad']}
+];
+
+/* sentences with a superlative: t = exact sentence, k = the superlative phrase, b = base adjective, w = wrong versions */
+const S=[
+ {t:'The Andes is the longest mountain range.',k:'the longest',b:'long',w:['the most long','the longer']},
+ {t:'The Atacama is the driest desert.',k:'the driest',b:'dry',w:['the dryest','the most dry']},
+ {t:'The Amazon is the biggest rainforest.',k:'the biggest',b:'big',w:['the bigest','the most big']},
+ {t:'Angel Falls is the highest waterfall.',k:'the highest',b:'high',w:['the most high','the higher']},
+ {t:'The Atacama is the driest desert in the world.',k:'the driest',b:'dry',w:['the dryest','the most dry']},
+ {t:'The Nile is the longest river in the world.',k:'the longest',b:'long',w:['the most long','the longer']},
+ {t:'The Lambert Glacier in the Antarctic is the biggest in the world.',k:'the biggest',b:'big',w:['the bigest','the most big']},
+ {t:'Scotland is the wettest part of the UK.',k:'the wettest',b:'wet',w:['the wetest','the most wet']},
+ {t:'Mount Etna, in Italy, is one of the most active volcanoes in the world.',k:'the most active',b:'active',w:['the activest','the activiest']},
+ {t:'Yuma, in the USA, is one of the sunniest places on Earth.',k:'the sunniest',b:'sunny',w:['the sunnyest','the most sunny']},
+ {t:'Greenland is the biggest island in the world, and one of the most glacial places.',k:'the most glacial',b:'glacial',w:['the glacialest','the glacialer']},
+ {t:'Some of the most devastating hurricanes happen in the Caribbean.',k:'the most devastating',b:'devastating',w:['the devastatingest','the devastatinger']},
+ {t:'The north of Scotland is one of the rainiest parts of the UK.',k:'the rainiest',b:'rainy',w:['the rainyest','the most rainy']},
+ {t:'The best coast is the west coast.',k:'the best',b:'good',w:['the goodest','the most good']}
+];
+/* other exact sentences (only for ordering) */
+const O=[
+ "That's a true and amazing fact.",
+ 'Not many people know that!',
+ "It's the warmest, sunniest and driest coast.",
+ "It's similar to a mountain.",
+ 'It can be more dangerous than a mountain.',
+ 'Some are active but others are inactive.',
+ "It's rocky. It can be active and dangerous.",
+ "It's cold and wet. It's made of frozen water.",
+ "It's part of a river. It makes a lot of noise.",
+ 'Less than one centimetre of rain a year!',
+ "That's very dry!",
+ 'I think the highest mountain is Mulhacén.',
+ "I think it's Mount Teide.",
+ "What's the most beautiful region in your country?",
+ "Because it's very green and I love the rocky coast.",
+ 'There is a mountain range in my country.',
+ 'Which is the biggest classroom in your school?',
+ 'We write the most before long adjectives.',
+ 'We only add -iest when an adjective has two syllables and ends in -y.',
+ 'The adjectives good and bad are irregular.'
+];
+const ALLSENT=S.map(x=>x.t).concat(O);
+
+const FACTS=[
+ {s:'The Andes',k:'the longest',n:'mountain range'},
+ {s:'The Atacama',k:'the driest',n:'desert'},
+ {s:'The Amazon',k:'the biggest',n:'rainforest'},
+ {s:'Angel Falls',k:'the highest',n:'waterfall'}
+];
+const TFSHEET=[
+ {t:'The Nile is the longest river in the world.',a:true},
+ {t:'The largest volcano on Earth is Mauna Loa, in Argentina.',a:false,ex:'False. (Mauna Loa is in Hawaii. Check with the class audio.)'},
+ {t:'The Lambert Glacier in the Antarctic is the biggest in the world.',a:true},
+ {t:'The highest mountain on Earth is Mount Everest, in Africa.',a:false,ex:'False. (Mount Everest is in Asia. Check with the class audio.)'},
+ {t:'Scotland is the wettest part of the UK.',a:true}
+];
+const VENN=[
+ {w:'desert',a:['dry']},
+ {w:'rainforest',a:['wet']},
+ {w:'glacier',a:['wet']},
+ {w:'waterfall',a:['wet','rocky']}
+];
+const DEFS=[
+ {t:"It's rocky. It can be active and dangerous.",a:'volcano'},
+ {t:"It's cold and wet. It's made of frozen water.",a:'glacier'},
+ {t:"It's part of a river. It makes a lot of noise.",a:'waterfall'},
+ {t:"It's similar to a mountain. It can be more dangerous than a mountain. Some are active but others are inactive.",a:'volcano'}
+];
+const SND=[
+ {w:'best',a:'/est/'},{w:'west',a:'/est/'},
+ {w:'sunniest',a:'/ɪst/'},{w:'warmest',a:'/ɪst/'},{w:'windiest',a:'/ɪst/'},{w:'driest',a:'/ɪst/'}
+];
+
+/* ================= QUESTION MAKERS ================= */
+const pickOpts=(ans,pool,n=3)=>shuffle([ans,...pick(pool.filter(x=>x!==ans),n)]);
+const chunks=t=>{const w=t.split(' '),out=[];let i=0;while(i<w.length){const n=(w.length-i===3)?3:2;out.push(w.slice(i,i+n).join(' '));i+=n;}return out;};
+
+function mkPic(){const pool=VOC.filter(v=>v.g!=='adj');const ws=pool.map(v=>v.w);
+ return pool.map(v=>({kind:'choice',tag:'Picture time',big:v.e,q:'What is it?',opts:pickOpts(v.w,ws),ans:v.w,show:v.w,ex:`${v.w} = ${v.es}`}));}
+function mkES(){const out=[];VOC.forEach(v=>{const grp=VOC.filter(x=>x.g===v.g);
+ out.push({kind:'choice',tag:'English → Español',bigword:v.w,q:'What does it mean?',opts:pickOpts(v.es,grp.map(x=>x.es)),ans:v.es,show:v.es});
+ out.push({kind:'choice',tag:'Español → English',bigword:v.es,q:'How do you say it in English?',opts:pickOpts(v.w,grp.map(x=>x.w)),ans:v.w,show:v.w});});return out;}
+function mkSpell(){return VOC.map(v=>({kind:'type',tag:'Spell it',big:v.e||'',bigword:v.e?'':v.es,q:v.e?`Write it in English (${v.es}).`:'Write it in English.',accept:[v.w],show:v.w}));}
+function mkDef(){const out=[];
+ DEFS.forEach(d=>out.push({kind:'choice',tag:'Riddle',q:d.t,opts:pickOpts(d.a,LAND),ans:d.a,show:d.a}));
+ VENN.forEach(v=>out.push({kind:'multi',tag:'Wet, rocky or dry?',bigword:v.w,q:'Tap all the words that fit.',opts:['wet','rocky','dry'],ans:v.a,show:v.a.join(' + '),ex:v.w==='waterfall'?'Waterfalls are wet. They can be rocky, too.':''}));
+ return out;}
+function mkSup(){return ADJ.map(x=>({kind:'choice',tag:'Pick the superlative',bigword:x.a,q:'Which one is correct?',opts:shuffle([x.s,...x.w]),ans:x.s,show:x.s,ex:`${x.a} → ${x.s}`}));}
+function mkSupW(){return ADJ.map(x=>({kind:'type',tag:'Write the superlative',bigword:x.a,q:'Write the superlative (with “the”).',accept:[x.s],show:x.s,ex:RULES[x.r]}));}
+function mkRule(){return ADJ.map(x=>({kind:'choice',tag:'Which rule?',bigword:x.a,q:`How do we make the superlative of “${x.a}”?`,opts:Object.values(RULES),ans:RULES[x.r],show:RULES[x.r],ex:`${x.a} → ${x.s}`}));}
+function mkBlank(){return S.map(x=>{const i=x.t.indexOf(x.k);return {kind:'type',tag:'Complete the sentence',q:'Write the missing words (with “the”).',sent:{a:x.t.slice(0,i),b:' '+`(${x.b})`+x.t.slice(i+x.k.length),k:x.k},accept:[x.k],show:x.t};});}
+function mkTF(){const out=[];
+ TFSHEET.forEach(x=>out.push({kind:'choice',tag:'True or false?',q:x.t,opts:['True','False'],ans:x.a?'True':'False',show:x.a?'True':'False',ex:x.a?'':x.ex,fixed:true}));
+ FACTS.forEach((f,i)=>{out.push({kind:'choice',tag:'True or false?',q:`${f.s} is ${f.k} ${f.n}.`,opts:['True','False'],ans:'True',show:'True',fixed:true});
+  const j=(i+1+rnd(3))%4;out.push({kind:'choice',tag:'True or false?',q:`${f.s} is ${f.k} ${FACTS[j].n}.`,opts:['True','False'],ans:'False',show:'False',ex:`${f.s} is ${f.k} ${f.n}.`,fixed:true});});
+ return out;}
+function mkSnd(){return SND.map(x=>({kind:'choice',tag:'Sounds good!',bigword:x.w,q:'How do we say the end of this word?',opts:['/ɪst/','/est/'],ans:x.a,show:x.a,ex:'Listen to the class audio to check.',fixed:true}));}
+function mkOrder(){return ALLSENT.map(t=>({kind:'order',tag:'Put it in order',q:'Build the exact sentence.',chunks:chunks(t),ans:t,show:t}));}
+function mkExact(){return S.map(x=>({kind:'choice',tag:'Which is exactly right?',q:'Choose the correct sentence.',opts:shuffle([x.t,x.t.replace(x.k,x.w[0]),x.t.replace(x.k,x.w[1])]),ans:x.t,show:x.t}));}
+
+const MODES=[
+ {id:'read',ico:'📖',t:'Study sheet',d:'Words, rules and sentences in one place'},
+ {grp:'Vocabulary'},
+ {id:'pic',ico:'🖼️',t:'Picture time',d:'Which landscape or weather word is it?',make:mkPic},
+ {id:'es',ico:'🔤',t:'English ↔ Español',d:'Match each word with its meaning',make:mkES},
+ {id:'spell',ico:'✍️',t:'Spell it',d:'Look, think and write the word',make:mkSpell},
+ {id:'def',ico:'🧩',t:'Riddles & Wet / Rocky / Dry',d:'Guess the landscape and sort the words',make:mkDef},
+ {grp:'Superlatives'},
+ {id:'sup',ico:'🏆',t:'Pick the superlative',d:'long → the longest. Choose the right form',make:mkSup},
+ {id:'supw',ico:'⌨️',t:'Write the superlative',d:'Type it yourself',make:mkSupW},
+ {id:'rule',ico:'📐',t:'Which rule?',d:'-est, -iest, most or irregular?',make:mkRule},
+ {id:'tf',ico:'✅',t:'True or false?',d:'Facts about rivers, deserts and mountains',make:mkTF},
+ {id:'snd',ico:'🔊',t:'Sounds good!',d:'/ɪst/ or /est/ at the end of the word?',make:mkSnd},
+ {grp:'Exact sentences'},
+ {id:'blank',ico:'📝',t:'Complete the sentences',d:'Write the superlative that is missing',make:mkBlank},
+ {id:'order',ico:'🔀',t:'Put it in order',d:'Build the exact sentence from the pieces',make:mkOrder},
+ {id:'exact',ico:'🎯',t:'Which is exactly right?',d:'Choose the correct sentence',make:mkExact},
+ {grp:'Everything'},
+ {id:'mix',ico:'🎲',t:'Mix of everything',d:'10 random questions from all the games',make:()=>[].concat(mkPic(),mkES(),mkSpell(),mkDef(),mkSup(),mkSupW(),mkRule(),mkTF(),mkBlank(),mkOrder(),mkExact())}
+];
+
+/* ================= SCREENS ================= */
+let ST={mode:null,qs:[],i:0,score:0,miss:[]};
+function menu(){
+ let h=`<a class="home" href="/">🏠 Home</a><div class="hero"><h1>Landscapes & Superlatives 🏔️</h1><p class="sub">Unit 2 · Why do landscapes change?</p></div>`;
+ MODES.forEach(m=>{h+=m.grp?`<h2 class="grp">${esc(m.grp)}</h2>`:`<button class="mode" data-id="${m.id}"><span class="ico">${m.ico}</span><span><span class="t">${esc(m.t)}</span><span class="d">${esc(m.d)}</span></span></button>`;});
+ app.innerHTML=h;window.scrollTo(0,0);
+}
+app.addEventListener('click',e=>{const b=e.target.closest('.mode');if(b)startMode(b.dataset.id);});
+
+function startMode(id){
+ const m=MODES.find(x=>x.id===id);ST.mode=m;
+ if(id==='read'){return read();}
+ ST.qs=pick(m.make(),10);ST.i=0;ST.score=0;ST.miss=[];showQ();
+}
+
+function read(){
+ const rows=a=>a.map(v=>`<div class="row"><span class="em">${v.e||'🔹'}</span><span><span class="nm">${esc(v.w)}</span><br><span class="es">${esc(v.es)}</span></span></div>`).join('');
+ app.innerHTML=`<div class="top"><button class="back" id="bk">← Menu</button></div><div class="card read">
+ <h2>Landscapes</h2>${rows(VOC.filter(v=>v.g==='land'))}
+ <h3>Describing words</h3>${rows(VOC.filter(v=>v.g==='adj'))}
+ <h3>Weather</h3>${rows(VOC.filter(v=>v.g==='weather'))}
+ <h3>Wet, rocky, dry</h3><ul><li>Rainforest: wet. Glacier: wet. Desert: dry.</li><li>Waterfalls are wet. They can be rocky, too.</li></ul>
+ <h3>Short superlative adjectives</h3>
+ <ul><li>We write <b>the</b> before the adjective and add <b>-est</b> in short adjectives.</li>
+ <li>long → <mark>the longest</mark> · big → <mark>the biggest</mark> (we add a letter) · high → <mark>the highest</mark></li>
+ <li>dry → <mark>the driest</mark> · wet → <mark>the wettest</mark> (irregular spellings)</li></ul>
+ <h3>Long and irregular superlative adjectives</h3>
+ <ul><li>We write <b>the most</b> before long adjectives: <mark>the most</mark> extreme, glacial, arid.</li>
+ <li>We only add <b>-iest</b> when an adjective has two syllables and ends in -y: windy → <mark>the windiest</mark>.</li>
+ <li>good → <mark>the best</mark> · bad → <mark>the worst</mark> (irregular)</li></ul>
+ <h3>Sentences to remember</h3><ul>${S.slice(0,6).map(x=>`<li>${esc(x.t)}</li>`).join('')}${S.slice(7).map(x=>`<li>${esc(x.t)}</li>`).join('')}</ul>
+ <h3>Riddles</h3><ul>${DEFS.map(d=>`<li>${esc(d.t)}</li>`).join('')}</ul>
+ <h3>Sounds good!</h3><ul><li>The <b>best</b> coast is the <b>west</b> coast. It's the <b>warmest</b>, <b>sunniest</b> and <b>driest</b> coast.</li></ul>
+ </div>`;window.scrollTo(0,0);
+}
+
+function showQ(){
+ const q=ST.qs[ST.i];
+ app.innerHTML=`<div class="top"><button class="back" id="bk">← Menu</button><div class="prog"><div class="bar" style="width:${ST.i/ST.qs.length*100}%"></div></div><div class="count">${ST.i+1}/${ST.qs.length}</div></div>
+ <div class="card"><div class="qtype">${esc(q.tag)}</div>${q.big?`<div class="bigpic" aria-hidden="true">${q.big}</div>`:''}${q.bigword?`<div class="bigword">${esc(q.bigword)}</div>`:''}<div class="q">${esc(q.q)}</div><div id="ui"></div></div><div id="fb"></div>`;
+ RENDER[q.kind](q);window.scrollTo(0,0);
+}
+app.addEventListener('click',e=>{if(e.target.closest('#bk'))menu();});
+
+function done(ok,q,extraHtml){
+ if(ok)ST.score++;else ST.miss.push(q);
+ const last=ST.i===ST.qs.length-1;
+ $('#fb').innerHTML=`<div class="fb ${ok?'good':'bad'}"><strong>${ok?'✅ Great!':'❌ Not quite'}</strong><div class="ans"><span class="lab">Answer</span>${esc(q.show)}</div>${q.ex?`<div class="src">${esc(q.ex)}</div>`:''}${extraHtml||''}<button class="btn" id="nx">${last?'See results':'Next →'}</button></div>`;
+ $('#nx').onclick=()=>{ST.i++;ST.i<ST.qs.length?showQ():results();};
+ $('#nx').scrollIntoView({block:'nearest'});
+}
+
+const RENDER={
+ choice(q){const ui=$('#ui');const opts=q.fixed?q.opts:shuffle(q.opts);
+  ui.innerHTML=`<div class="opts">${opts.map(o=>`<button class="opt" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>`;
+  ui.onclick=e=>{const b=e.target.closest('.opt');if(!b||b.disabled)return;const ok=b.dataset.v===q.ans;
+   ui.querySelectorAll('.opt').forEach(x=>{x.disabled=true;if(x.dataset.v===q.ans)x.classList.add('good');});
+   if(!ok)b.classList.add('bad');done(ok,q);};},
+ multi(q){const ui=$('#ui');
+  ui.innerHTML=`<div class="opts">${q.opts.map(o=>`<button class="opt" aria-pressed="false" data-v="${o}">${o}</button>`).join('')}</div><div class="actions"><button class="btn" id="ck">Check</button></div>`;
+  ui.onclick=e=>{const b=e.target.closest('.opt');if(b&&!b.disabled){b.classList.toggle('sel');b.setAttribute('aria-pressed',b.classList.contains('sel'));}};
+  $('#ck').onclick=()=>{const sel=[...ui.querySelectorAll('.opt.sel')].map(x=>x.dataset.v);
+   const ok=sel.length===q.ans.length&&q.ans.every(a=>sel.includes(a));
+   ui.querySelectorAll('.opt').forEach(x=>{x.disabled=true;x.classList.remove('sel');if(q.ans.includes(x.dataset.v))x.classList.add('good');else if(sel.includes(x.dataset.v))x.classList.add('bad');});
+   $('#ck').disabled=true;done(ok,q);};},
+ type(q){const ui=$('#ui');
+  const sent=q.sent?`<p class="sentence">${esc(q.sent.a)}<span class="blank" id="bl">&nbsp;</span><span class="hint">${esc(q.sent.b.split(')')[0])})</span>${esc(q.sent.b.slice(q.sent.b.indexOf(')')+1))}</p>`:'';
+  ui.innerHTML=`${sent}<input class="txt" id="inp" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Your answer"><div class="actions"><button class="btn" id="ck">Check</button></div>`;
+  const inp=$('#inp');
+  const check=()=>{const v=inp.value;if(!v.trim())return;const ok=q.accept.some(a=>norm(a)===norm(v));
+   inp.disabled=true;inp.classList.add(ok?'good':'bad');$('#ck').disabled=true;
+   const bl=$('#bl');if(bl){bl.textContent=q.accept[0];bl.classList.add(ok?'good':'bad');}
+   done(ok,q);};
+  $('#ck').onclick=check;inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();check();}};},
+ order(q){const ui=$('#ui');let bank=shuffle(q.chunks.map((t,i)=>({t,i}))),placed=[],locked=false;
+  const draw=()=>{ui.innerHTML=`<div class="slot" id="sl">${placed.length?placed.map(c=>`<button class="chip in" data-i="${c.i}">${esc(c.t)}</button>`).join(''):'<span class="ph">Tap the pieces in order</span>'}</div><div class="bank">${bank.map(c=>`<button class="chip" data-i="${c.i}">${esc(c.t)}</button>`).join('')}</div><div class="actions"><button class="btn ghost" id="rs">Reset</button><button class="btn" id="ck"${bank.length?' disabled':''}>Check</button></div>`;
+   ui.querySelectorAll('.bank .chip').forEach(b=>b.onclick=()=>{const c=bank.find(x=>x.i==b.dataset.i);bank=bank.filter(x=>x!==c);placed.push(c);draw();});
+   ui.querySelectorAll('.slot .chip').forEach(b=>b.onclick=()=>{const c=placed.find(x=>x.i==b.dataset.i);placed=placed.filter(x=>x!==c);bank.push(c);draw();});
+   $('#rs').onclick=()=>{bank=shuffle(q.chunks.map((t,i)=>({t,i})));placed=[];draw();};
+   $('#ck').onclick=()=>{if(locked)return;locked=true;const ok=placed.map(c=>c.t).join(' ')===q.ans;
+    ui.querySelectorAll('.chip,.btn').forEach(x=>x.disabled=true);$('#sl').classList.add(ok?'good':'bad');done(ok,q);};};
+  draw();}
+};
+
+function results(){
+ const n=ST.qs.length,s=ST.score;const msg=s===n?'Perfect! 🌟':s>=n*0.7?'Very good! 💪':'Keep practising! 🌱';
+ app.innerHTML=`<div class="top"><button class="back" id="bk">← Menu</button></div><div class="card" style="text-align:center"><div class="qtype">${esc(ST.mode.t)}</div><div class="big">${s} / ${n}</div><p>${msg}</p>
+ ${ST.miss.length?`<div style="text-align:left"><span class="lab">To review</span>${ST.miss.map(q=>`<div class="rev"><div class="lab">${esc(q.tag)}</div>${q.bigword?`<b>${esc(q.bigword)}</b><br>`:''}${esc(q.show)}</div>`).join('')}</div>`:''}
+ <div class="actions"><button class="btn" id="again">Play again</button><button class="btn ghost" id="bk2">Menu</button></div></div>`;
+ $('#again').onclick=()=>startMode(ST.mode.id);$('#bk2').onclick=menu;window.scrollTo(0,0);
+}
+menu();
+</script>
+</body>
+</html>
