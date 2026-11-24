@@ -54,6 +54,16 @@ h2.grp{font-size:15px;margin:26px 0 2px;text-transform:uppercase;letter-spacing:
 .map{display:block;width:100%;margin:12px 0 4px;padding:0;border:2px solid var(--line);border-radius:16px;overflow:hidden;background:#fff;cursor:zoom-in}
 .map img{display:block;width:100%;height:auto}
 .maphint{color:var(--muted);font-size:14px;margin:0 0 8px}
+.tapbar{display:flex;justify-content:flex-end;margin:10px 0 8px}
+.tapscroll{overflow-x:auto;border:2px solid var(--line);border-radius:16px;background:#fff}
+.tapmap{position:relative;width:100%}
+.tapscroll.big .tapmap{width:190%}
+.tapmap img{display:block;width:100%;height:auto}
+.hot{position:absolute;width:8%;min-width:30px;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;border:2px dashed var(--sec);background:transparent;padding:0;cursor:pointer}
+.hot:hover:not(:disabled){background:rgba(91,75,219,.18)}
+.hot:disabled{cursor:default}
+.hot.good{border:4px solid var(--good)}
+.hot.bad{border:4px solid var(--bad)}
 .zoom{position:fixed;inset:0;z-index:50;overflow:auto;background:var(--bg);-webkit-overflow-scrolling:touch}
 .zoom .zbar{position:sticky;top:0;left:0;display:flex;justify-content:flex-end;padding:10px max(12px,env(safe-area-inset-right,0px)) 10px max(12px,env(safe-area-inset-left,0px));padding-top:max(10px,env(safe-area-inset-top,0px));background:var(--bg);z-index:2}
 .zoom img{display:block;width:210%;max-width:none;height:auto;background:#fff}
@@ -112,6 +122,7 @@ h2.grp{font-size:15px;margin:26px 0 2px;text-transform:uppercase;letter-spacing:
 .read .num{font-weight:800;font-size:22px;color:var(--sec-text);font-variant-numeric:tabular-nums;text-align:center}
 .read .en{font-weight:800}
 .read .es{color:var(--muted);font-style:italic}
+.read .alt{color:var(--muted);font-size:15px}
 </style>
 
 <main id="app"></main>
@@ -141,20 +152,26 @@ const R=[
 {n:15,en:"Betic system",             es:"Sistema Bético",             bad:["Betic sistem","Betik system","Bettic system"]},
 {n:18,en:"Catalan Coastal range",    es:"Cordillera Costera Catalana",bad:["Catalan Coster range","Catalan Coastal rage","Catalan Costal range"]}
 ];
+/* Other names for the same place, as shown in the online map game (Didactalia). The worksheet names stay the main ones. */
+const ALT={2:["Northern plateau"],3:["Southern plateau"],4:["Ebro basin"],5:["Baetic depression","Guadalquivir depression"],7:["Montes de Toledo","Toledo Mountains"],10:["Cantabrian Mountains"],12:["Sierra Morena"],15:["Baetic system"],18:["Catalan coastal ranges"]};
+R.forEach(r=>{r.alt=ALT[r.n]||[];});
+/* Extra remarks for the reading screen. */
+const NOTE={14:"The online game counts it as part of the Cantabrian Mountains."};
 const src=r=>r.n+" · "+r.en+" · "+r.es;
+const srcEn=r=>r.n+" · "+r.en;
 const pickN=(a,n)=>shuffle(a).slice(0,n);
 
 /* ---------- question builders ---------- */
 const choiceQ=o=>({type:"choice",label:o.label,q:o.q,lead:o.lead,map:!!o.map,nums:!!o.nums,options:shuffle([o.a].concat(o.w)),correct:o.a,srcText:o.srcText});
-const POOL={map:[],find:[],es:[],order:[],gap:[],write:[],spell:[],match:[]};
+const POOL={map:[],find:[],es:[],order:[],gap:[],write:[],spell:[],match:[],tap:[]};
 R.forEach(r=>{
   const others=R.filter(x=>x!==r);
   POOL.map.push({id:"map-"+r.n,build:()=>choiceQ({label:"Look at the map",q:"What is number "+r.n+" on the map?",map:true,a:r.en,w:pickN(others,3).map(x=>x.en),srcText:src(r)})});
-  POOL.find.push({id:"find-"+r.n,build:()=>choiceQ({label:"Find the number",q:"Which number on the map is the "+r.en+"?",map:true,nums:true,a:String(r.n),w:pickN(others,3).map(x=>String(x.n)),srcText:src(r)})});
+  POOL.find.push({id:"find-"+r.n,build:()=>{const names=(r.n===10?[r.en]:[r.en].concat(r.alt));const name=names[rnd(names.length)];return choiceQ({label:"Find the number",q:"Which number on the map is the \""+name+"\"?",map:true,nums:true,a:String(r.n),w:pickN(others,3).map(x=>String(x.n)),srcText:srcEn(r)});}});
   POOL.es.push({id:"es1-"+r.n,build:()=>choiceQ({label:"English and Spanish",q:"How do you say \""+r.es+"\" in English?",a:r.en,w:pickN(others,3).map(x=>x.en),srcText:src(r)})});
   POOL.es.push({id:"es2-"+r.n,build:()=>choiceQ({label:"English and Spanish",q:"What is \""+r.en+"\" in Spanish?",a:r.es,w:pickN(others,3).map(x=>x.es),srcText:src(r)})});
   POOL.spell.push({id:"sp-"+r.n,build:()=>choiceQ({label:"Spell it right",q:"Which spelling is correct?",lead:"In Spanish: "+r.es,a:r.en,w:pickN(r.bad,3),srcText:src(r)})});
-  POOL.write.push({id:"wr-"+r.n,build:()=>({type:"gap",inline:false,map:true,label:"Write the name",prompt:"Write the English name of number "+r.n+" on the map.",answer:r.en,accept:[r.en],srcText:src(r)})});
+  POOL.write.push({id:"wr-"+r.n,build:()=>({type:"gap",inline:false,map:true,label:"Write the name",prompt:"Write the English name of number "+r.n+" on the map.",answer:r.en,accept:[r.en].concat(r.alt),srcText:src(r)})});
   const words=r.en.split(" ");
   if(words.length>=2){
     POOL.order.push({id:"or-"+r.n,build:()=>{
@@ -170,6 +187,21 @@ R.forEach(r=>{
   }
 });
 POOL.match.push(...R.map(r=>({id:"mt-"+r.n,l:r.en,r:r.es,src:src(r)})));
+/* Where the number labels sit on the map picture (x of 1000, y of 885). 16 and 17 are not part of the game. */
+const HOT={1:[513,272],2:[503,165],3:[524,542],4:[772,165],5:[385,730],6:[358,340],7:[620,410],8:[137,80],9:[328,112],10:[456,104],11:[795,268],12:[260,690],13:[764,53],14:[627,46],15:[778,618],18:[925,292]};
+R.forEach(r=>{
+  POOL.tap.push({id:"tap-"+r.n,build:()=>{
+    const names=[r.en].concat(r.alt),name=names[rnd(names.length)];
+    const alsoOk=(r.n===10&&name==="Cantabrian Mountains")?[14]:[];
+    const parts=[];
+    const rest=r.alt.filter(a=>a!==name);
+    if(rest.length)parts.push("Also called: "+rest.join(" · "));
+    if(alsoOk.length)parts.push("The online game counts the Basque mountains (14) as part of the Cantabrian Mountains, so 14 is also accepted");
+    if(NOTE[r.n])parts.push(NOTE[r.n]);
+    return{type:"tap",label:"Tap the map",name:name,n:r.n,alsoOk:alsoOk,srcText:srcEn(r),extra:parts.join(". ")};
+  }});
+});
+
 
 /* ---------- engine ---------- */
 const $app=document.getElementById("app");
@@ -215,6 +247,7 @@ function showMenu(){
 ${m("read","📖","Read the map","The 16 names with their number and the Spanish name")}
 <h2 class="grp">On the map</h2>
 ${m("map","🗺️","Number to name","Look at the map: what is number 7?")}
+${m("tap","👆","Tap the map","Tap the right number: sheet names and other names")}
 ${m("find","🔢","Name to number","Which number is the Pyrenees?")}
 ${m("es","🇪🇸","English and Spanish","Say each name in both languages")}
 ${m("match","🔗","Match the pairs","English name with Spanish name")}
@@ -241,7 +274,7 @@ function pick(type,n){
   return out;
 }
 function pickMix(n){
-  const kinds=["map","find","es","spell","write","gap","gap","order","map","find","es","spell"];
+  const kinds=["map","find","es","spell","write","gap","gap","order","map","find","es","spell","tap"];
   const types=shuffle(kinds).slice(0,n),ranked={},out=[],usedKey=new Set();
   types.forEach(t=>{
     ranked[t]=ranked[t]||rank(POOL[t]);
@@ -287,11 +320,12 @@ function showQ(){
       h("strong",{text:ok?(info.hint?"Correct, but you used a hint, so no star.":"Correct! ⭐"):(q.type==="match"?"Finished. A few pairs needed another try.":"Not quite.")}),
       (!ok&&info.answer)?h("div",{class:"ans"},"The right answer: ",h("b",{text:info.answer})):null,
       srcLine?h("div",{class:"src"},h("span",{class:"lab",text:"On your sheet"}),h("span",{text:srcLine})):null,
+      q.extra?h("div",{class:"src"},h("span",{class:"lab",text:"Good to know"}),h("span",{text:q.extra})):null,
       h("button",{class:"btn",type:"button",text:last?"See results":"Next →",onclick:()=>{r.i++;if(last)showResults();else showQ();}}));
     fb.replaceChildren(box);
     box.scrollIntoView({block:"nearest"});
   };
-  ({choice:rChoice,order:rOrder,gap:rGap,match:rMatch})[q.type](q,finish,card);
+  ({choice:rChoice,order:rOrder,gap:rGap,match:rMatch,tap:rTap})[q.type](q,finish,card);
   $app.replaceChildren(top,card,fb);
   window.scrollTo(0,0);
   const first=card.querySelector("input");if(first)first.focus({preventScroll:true});
@@ -311,6 +345,30 @@ function rChoice(q,finish,card){
     list.append(b);
   });
   add(card,head(q),h("p",{class:"q",text:q.q}),q.map?mapEl():null,list);
+}
+
+function rTap(q,finish,card){
+  add(card,head(q),h("p",{class:"q",text:"Tap the number of the \""+q.name+"\" on the map."}));
+  const bigBtn=h("button",{class:"back",type:"button",text:"🔍 Bigger map"});
+  const scroll=h("div",{class:"tapscroll"}),wrap=h("div",{class:"tapmap"});
+  wrap.append(h("img",{src:MAP,alt:"Relief map of Spain and Portugal with numbers"}));
+  const hs=[];
+  Object.keys(HOT).forEach(k=>{
+    const n=+k,pos=HOT[k];
+    const b=h("button",{class:"hot",type:"button","aria-label":"Number "+n,style:"left:"+(pos[0]/10).toFixed(2)+"%;top:"+(pos[1]/8.85).toFixed(2)+"%"});
+    b.onclick=()=>{
+      const ok=n===q.n||q.alsoOk.includes(n);
+      hs.forEach(o=>{o.b.disabled=true;});
+      hs.find(o=>o.n===q.n).b.classList.add("good");
+      if(ok&&n!==q.n)b.classList.add("good");
+      if(!ok)b.classList.add("bad");
+      finish(ok,{answer:"number "+q.n});
+    };
+    hs.push({n:n,b:b});wrap.append(b);
+  });
+  scroll.append(wrap);
+  bigBtn.onclick=()=>{const on=scroll.classList.toggle("big");bigBtn.textContent=on?"🔍 Smaller map":"🔍 Bigger map";};
+  add(card,h("div",{class:"tapbar"},bigBtn),scroll,h("p",{class:"maphint",text:"Use \"Bigger map\" if the numbers are small, then slide the map sideways."}));
 }
 
 function rOrder(q,finish,card){
@@ -416,8 +474,8 @@ function showRead(){
   const mapCard=h("section",{class:"card read"},h("h2",{text:"The map"}),mapEl());
   const list=h("section",{class:"card read"},
     h("h2",{text:"The 16 names"}),
-    ...R.map(r=>h("div",{class:"row"},h("div",{class:"num",text:r.n}),h("div",null,h("div",{class:"en",text:r.en}),h("div",{class:"es",text:r.es})))),
-    h("p",{class:"note",text:"Numbers 16 and 17 are on the map but are not part of this game."}));
+    ...R.map(r=>h("div",{class:"row"},h("div",{class:"num",text:r.n}),h("div",null,h("div",{class:"en",text:r.en}),h("div",{class:"es",text:r.es}),r.alt.length?h("div",{class:"alt",text:"Also: "+r.alt.join(" · ")}):null,NOTE[r.n]?h("div",{class:"alt",text:NOTE[r.n]}):null))),
+    h("p",{class:"note",text:"Numbers 16 and 17 are on the map but are not part of this game. The names after \"Also\" come from an online map game. Use the sheet names first."}));
   $app.replaceChildren(top,mapCard,list,h("button",{class:"btn",type:"button",style:"width:100%",text:"Back to the menu",onclick:showMenu}));
   window.scrollTo(0,0);
 }
